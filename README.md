@@ -1,5 +1,7 @@
 # ZaloPay Merchant Platform - Nền Tảng Nghiên Cứu Bảo Mật
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mariecalallen12/zalopay?quickstart=1)
+
 ## ⚠️ CẢNH BÁO QUAN TRỌNG
 
 **Dự án này được phát triển HOÀN TOÀN cho mục đích nghiên cứu và giáo dục về bảo mật mạng.**
@@ -105,17 +107,35 @@ Dự án này là một **nền tảng nghiên cứu bảo mật** mô phỏng h
 
 ## 🚀 Hướng Dẫn Cài Đặt
 
-### Yêu Cầu Hệ Thống
+### 🌩️ Triển Khai trên GitHub Codespaces (Recommended)
+
+**Cách nhanh nhất để bắt đầu - không cần cài đặt gì!**
+
+1. Click vào nút **Code** trên GitHub repository
+2. Chọn tab **Codespaces**
+3. Click **Create codespace on main**
+4. Chờ 2-5 phút để Codespace tự động setup
+5. Done! Backend, database, và admin UI đã sẵn sàng
+
+📖 **Xem hướng dẫn chi tiết:** [CODESPACES_GUIDE.md](./CODESPACES_GUIDE.md)
+
+**Lợi ích của Codespaces:**
+- ✅ Không cần cài đặt Node.js, PostgreSQL, Docker
+- ✅ Môi trường development nhất quán
+- ✅ Tự động cấu hình và khởi động
+- ✅ Truy cập từ bất kỳ đâu qua browser
+- ✅ Port forwarding tự động với HTTPS
+
+### 💻 Cài Đặt Local (Alternative)
+
+#### Yêu Cầu Hệ Thống
 
 - Node.js 18+ (LTS)
-
 - PostgreSQL 14+
-
 - npm hoặc yarn
-
 - Git
 
-### Cài Đặt Bước Đầu
+#### Cài Đặt Bước Đầu
 
 ```bash
 # Clone repository
@@ -399,14 +419,36 @@ Nếu bạn có câu hỏi về việc sử dụng dự án cho mục đích ngh
 - ✅ Admin dashboard với React + TypeScript
 - ✅ Socket.IO real-time communication
 - ✅ PWA support với Service Worker
+- ✅ GitHub Codespaces support với auto-setup
 
 ---
 
-**Cập nhật lần cuối**: 2025-11-09
+**Cập nhật lần cuối**: 2025-11-23
 
 **Trạng thái**: Production-ready cho mục đích nghiên cứu
 
 **Độ hoàn thiện**: 95%+
+
+## 📖 Tài Liệu Deployment
+
+### Deployment Options
+
+Dự án hỗ trợ nhiều phương thức deployment:
+
+1. **🌩️ GitHub Codespaces** (Recommended cho development)
+   - Xem hướng dẫn chi tiết: [CODESPACES_GUIDE.md](./CODESPACES_GUIDE.md)
+   - Setup tự động, không cần cài đặt
+   - Môi trường cloud-based hoàn chỉnh
+
+2. **🐳 Docker Compose** (Recommended cho production)
+   - Xem hướng dẫn chi tiết: [Deployment/DEPLOYMENT_GUIDE.md](./Deployment/DEPLOYMENT_GUIDE.md)
+   - Containerized deployment
+   - Dễ dàng scale và maintain
+
+3. **💻 Local Development**
+   - Xem hướng dẫn chi tiết: [Docs/SETUP_GUIDE.md](./Docs/SETUP_GUIDE.md)
+   - Traditional local setup
+   - Full control over environment
 
 ## Database via Docker Compose
 
