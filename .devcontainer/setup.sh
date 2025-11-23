@@ -51,8 +51,15 @@ fi
 
 # Copy backend env if not exists
 if [ ! -f backend/.env.docker ]; then
-    cp backend/env.docker.example backend/.env.docker 2>/dev/null || true
-    print_success "Created backend/.env.docker"
+    if [ -f backend/.env.docker.example ]; then
+        cp backend/.env.docker.example backend/.env.docker
+        print_success "Created backend/.env.docker from example"
+    elif [ -f backend/env.docker.example ]; then
+        cp backend/env.docker.example backend/.env.docker
+        print_success "Created backend/.env.docker from env.docker.example"
+    else
+        print_warning "No .env.docker.example found, skipping"
+    fi
 else
     print_warning "backend/.env.docker already exists, skipping"
 fi

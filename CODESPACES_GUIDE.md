@@ -71,7 +71,7 @@ GitHub Codespaces là một môi trường phát triển đám mây (cloud-based
 
 #### Option A: Từ GitHub Repository
 
-1. Truy cập repository: `https://github.com/YOUR_USERNAME/zalopay`
+1. Truy cập repository: `https://github.com/mariecalallen12/zalopay`
 2. Click vào nút **Code** (màu xanh)
 3. Chọn tab **Codespaces**
 4. Click **Create codespace on main** (hoặc branch bạn muốn)
@@ -80,7 +80,7 @@ GitHub Codespaces là một môi trường phát triển đám mây (cloud-based
 
 1. Truy cập: `https://github.com/codespaces`
 2. Click **New codespace**
-3. Chọn repository: `YOUR_USERNAME/zalopay`
+3. Chọn repository: `mariecalallen12/zalopay`
 4. Chọn branch (default: `main`)
 5. Chọn region (gần bạn nhất để có latency thấp)
 6. Chọn machine type:
@@ -1277,8 +1277,8 @@ chmod +x /workspace/cleanup.sh
 
 ### Support
 
-- GitHub Issues: [Create an issue](https://github.com/YOUR_USERNAME/zalopay/issues)
-- GitHub Discussions: [Start a discussion](https://github.com/YOUR_USERNAME/zalopay/discussions)
+- GitHub Issues: [Create an issue](https://github.com/mariecalallen12/zalopay/issues)
+- GitHub Discussions: [Start a discussion](https://github.com/mariecalallen12/zalopay/discussions)
 - Codespaces Support: https://support.github.com/
 
 ---
