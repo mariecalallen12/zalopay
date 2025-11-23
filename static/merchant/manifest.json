@@ -1,0 +1,45 @@
+{
+  "name": "ZaloPay Merchant Platform",
+  "short_name": "ZaloPay Merchant",
+  "description": "ZaloPay Merchant Platform - Nền tảng giải pháp toàn diện cho mọi nhu cầu kinh doanh",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0066cc",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/images/zalopay-merchant-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/zalopay-merchant-app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Đăng ký",
+      "short_name": "Đăng ký",
+      "description": "Đăng ký tài khoản merchant",
+      "url": "/register",
+      "icons": [{ "src": "/images/zalopay-merchant-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Xem dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/images/zalopay-merchant-icon.png", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
+

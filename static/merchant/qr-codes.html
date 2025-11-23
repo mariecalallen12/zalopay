@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <title>QR Codes - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <div class="nav-brand">
+                <img src="/1200x630wa.png" alt="ZaloPay" height="32" style="margin-right: 12px;">
+                ZaloPay Merchant
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="transactions.html"><i class="fas fa-exchange-alt"></i> Giao dịch</a></li>
+                <li><a href="qr-codes.html" class="active"><i class="fas fa-qrcode"></i> QR Codes</a></li>
+                <li><a href="reports.html"><i class="fas fa-chart-bar"></i> Báo cáo</a></li>
+                <li><a href="account-settings.html"><i class="fas fa-cog"></i> Cài đặt</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main style="padding-top: 80px;">
+        <!-- Page Header -->
+        <section class="py-4 bg-white">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-1">Quản lý QR Codes</h1>
+                        <p class="text-muted mb-0">Tạo và quản lý mã QR thanh toán của bạn</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createQRModal">
+                            <i class="fas fa-plus me-2"></i>
+                            Tạo QR Code mới
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- QR Codes Grid -->
+        <section class="py-4">
+            <div class="container">
+                <div class="row g-4" id="qrCodesGrid">
+                    <!-- QR Codes will be loaded here -->
+                </div>
+
+                <!-- Loading state -->
+                <div id="loadingState" class="text-center py-5">
+                    <div class="spinner"></div>
+                    <p class="text-muted mt-3">Đang tải danh sách QR codes...</p>
+                </div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="text-center py-5 d-none">
+                    <i class="fas fa-qrcode fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted mb-3">Chưa có QR Code nào</h4>
+                    <p class="text-muted mb-4">Tạo QR Code đầu tiên để bắt đầu nhận thanh toán</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createQRModal">
+                        <i class="fas fa-plus me-2"></i>
+                        Tạo QR Code đầu tiên
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Create QR Code Modal -->
+    <div class="modal fade" id="createQRModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tạo QR Code mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createQRForm">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tên QR Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="qrName" placeholder="Ví dụ: Bàn 01, Quầy thanh toán..." required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Loại QR Code</label>
+                                <select class="form-control" id="qrType">
+                                    <option value="static">Cố định (Static)</option>
+                                    <option value="dynamic">Động (Dynamic)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Số tiền (đối với QR động)</label>
+                                <input type="number" class="form-control" id="qrAmount" placeholder="Để trống nếu không cố định" min="1000">
+                                <small class="text-muted">Tối thiểu 1,000 VND</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Mô tả</label>
+                                <input type="text" class="form-control" id="qrDescription" placeholder="Mô tả ngắn gọn về QR code này">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Thiết kế QR Code</label>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="qrDesign" id="design1" value="default" checked>
+                                            <label class="form-check-label" for="design1">
+                                                <img src="https://via.placeholder.com/100x100/0033C9/FFFFFF?text=QR" alt="Design 1" class="img-thumbnail me-2" style="width: 50px; height: 50px;">
+                                                Thiết kế cơ bản
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="qrDesign" id="design2" value="premium">
+                                            <label class="form-check-label" for="design2">
+                                                <img src="https://via.placeholder.com/100x100/10b981/FFFFFF?text=QR" alt="Design 2" class="img-thumbnail me-2" style="width: 50px; height: 50px;">
+                                                Thiết kế cao cấp
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="qrDesign" id="design3" value="custom">
+                                            <label class="form-check-label" for="design3">
+                                                <img src="https://via.placeholder.com/100x100/f59e0b/FFFFFF?text=QR" alt="Design 3" class="img-thumbnail me-2" style="width: 50px; height: 50px;">
+                                                Thiết kế tùy chỉnh
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-qrcode me-2"></i>
+                            Tạo QR Code
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Detail Modal -->
+    <div class="modal fade" id="qrDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chi tiết QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="qrDetailContent">
+                    <!-- QR detail content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-success" onclick="downloadQR()">
+                        <i class="fas fa-download me-2"></i>
+                        Tải xuống
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="editQR()">
+                        <i class="fas fa-edit me-2"></i>
+                        Chỉnh sửa
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="deleteQR()">
+                        <i class="fas fa-trash me-2"></i>
+                        Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40" class="mb-3">
+                    <p class="text-muted">Nền tảng thanh toán toàn diện cho mọi nhu cầu kinh doanh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ trợ</h4>
+                    <ul>
+                        <li><a href="#">Trung tâm hỗ trợ</a></li>
+                        <li><a href="#">Liên hệ chúng tôi</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Điều khoản sử dụng</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Sản phẩm</h4>
+                    <ul>
+                        <li><a href="#">Ví điện tử ZaloPay</a></li>
+                        <li><a href="#">Thanh toán online</a></li>
+                        <li><a href="#">Thanh toán offline</a></li>
+                        <li><a href="#">Giải pháp doanh nghiệp</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Kết nối</h4>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">LinkedIn</a></li>
+                        <li><a href="#">YouTube</a></li>
+                        <li><a href="#">Zalo OA</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ZaloPay. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="js/qr-codes.js"></script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>

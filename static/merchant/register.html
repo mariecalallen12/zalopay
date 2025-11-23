@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký đối tác - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='merchant/css/style.css') }}" rel="stylesheet">
+    <style>
+        /* Progress Indicator Styles */
+        .progress-indicator {
+            padding: 1.5rem 0;
+        }
+        
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .step.active .step-number {
+            background: linear-gradient(135deg, #0033C9 0%, #0042FF 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 66, 255, 0.3);
+        }
+        
+        .step.completed .step-number {
+            background: #28a745;
+            color: white;
+        }
+        
+        .step.completed .step-number::after {
+            content: '✓';
+            font-size: 1.2rem;
+        }
+        
+        .step-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .step.active .step-label {
+            color: #0042FF;
+            font-weight: 600;
+        }
+        
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: #e9ecef;
+            margin: 0 0.5rem;
+            position: relative;
+            top: -20px;
+        }
+        
+        .step-line.completed {
+            background: #28a745;
+        }
+        
+        /* Character Counter Styles */
+        .char-counter {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        
+        .char-counter.warning {
+            color: #ffc107;
+        }
+        
+        .char-counter.danger {
+            color: #dc3545;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .progress-steps {
+                flex-wrap: wrap;
+            }
+            
+            .step {
+                min-width: 60px;
+                margin-bottom: 1rem;
+            }
+            
+            .step-line {
+                display: none;
+            }
+            
+            .step-label {
+                font-size: 0.65rem;
+            }
+            
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            
+            .card {
+                margin: 0 -15px;
+                border-radius: 0;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .form-control, .form-select {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 12px;
+                min-height: 44px; /* Touch-friendly size */
+            }
+            
+            .btn {
+                min-height: 44px;
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+            
+            .form-check {
+                padding: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .form-check-input {
+                width: 20px;
+                height: 20px;
+                margin-top: 4px;
+            }
+            
+            .file-upload-area {
+                padding: 2rem 1rem;
+                min-height: 120px;
+            }
+            
+            .char-counter {
+                font-size: 0.7rem;
+            }
+            
+            /* Touch-friendly file upload */
+            input[type="file"] {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            /* Better spacing on mobile */
+            .mb-4 {
+                margin-bottom: 1.5rem !important;
+            }
+            
+            .mb-3 {
+                margin-bottom: 1rem !important;
+            }
+        }
+        
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn, .form-control, .form-select, input, select, textarea {
+                -webkit-tap-highlight-color: rgba(0, 66, 255, 0.1);
+            }
+            
+            .btn:active {
+                transform: scale(0.98);
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('merchant.index') }}">
+                <img src="https://stc-zaloprofile.zdn.vn/pc/v1/images/logo_zalopay.png" alt="ZaloPay" height="40">
+            </a>
+            <nav class="ms-auto">
+                <a href="{{ url_for('merchant.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="mb-0">
+                            <i class="fas fa-user-plus me-2"></i>Đăng ký trở thành đối tác ZaloPay
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <!-- Progress Indicator -->
+                        <div class="progress-indicator mb-4" id="progressIndicator">
+                            <div class="progress-steps">
+                                <div class="step active" data-step="1">
+                                    <div class="step-number">1</div>
+                                    <div class="step-label">Loại hình</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step" data-step="2">
+                                    <div class="step-number">2</div>
+                                    <div class="step-label">Doanh nghiệp</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step" data-step="3">
+                                    <div class="step-number">3</div>
+                                    <div class="step-label">Người đại diện</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step" data-step="4">
+                                    <div class="step-number">4</div>
+                                    <div class="step-label">Ngân hàng</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step" data-step="5">
+                                    <div class="step-number">5</div>
+                                    <div class="step-label">Tài liệu</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step" data-step="6">
+                                    <div class="step-number">6</div>
+                                    <div class="step-label">Xác nhận</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step" data-step="7">
+                                    <div class="step-number">7</div>
+                                    <div class="step-label">Xác minh</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="POST" enctype="multipart/form-data" id="registrationForm">
+                            <!-- Business Type Selection -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3">Loại hình kinh doanh</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="business_type" id="individual" value="individual" checked>
+                                            <label class="form-check-label" for="individual">
+                                                <strong>Cá nhân / Hộ kinh doanh</strong><br>
+                                                <small class="text-muted">Dành cho cá nhân và hộ kinh doanh</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="business_type" id="enterprise" value="enterprise">
+                                            <label class="form-check-label" for="enterprise">
+                                                <strong>Doanh nghiệp</strong><br>
+                                                <small class="text-muted">Dành cho công ty, tập đoàn</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Business Information -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3">Thông tin doanh nghiệp</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="business_name" class="form-label">Tên doanh nghiệp <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="business_name" name="business_name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="industry" class="form-label">Ngành nghề <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="industry" name="industry" required>
+                                            <option value="">Chọn ngành nghề</option>
+                                            <option value="restaurant">Nhà hàng ăn uống</option>
+                                            <option value="retail">Bán lẻ</option>
+                                            <option value="services">Dịch vụ chăm sóc cá nhân</option>
+                                            <option value="entertainment">Giải trí</option>
+                                            <option value="online">Kinh doanh online</option>
+                                            <option value="canteen">Căn tin</option>
+                                            <option value="parking">Bãi đỗ xe</option>
+                                            <option value="other">Khác</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="tax_code" class="form-label">Mã số thuế</label>
+                                        <input type="text" class="form-control" id="tax_code" name="tax_code">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="business_license" class="form-label">Số giấy phép kinh doanh</label>
+                                        <input type="text" class="form-control" id="business_license" name="business_license">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="business_address" class="form-label">Địa chỉ kinh doanh <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="business_address" name="business_address" rows="3" maxlength="500" required></textarea>
+                                    <div class="char-counter" id="business_address_counter">
+                                        <span id="business_address_count">0</span>/500 ký tự
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="business_phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="business_phone" name="business_phone" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="business_email" class="form-label">Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="business_email" name="business_email" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="website" class="form-label">Website</label>
+                                    <input type="url" class="form-control" id="website" name="website" placeholder="https://">
+                                </div>
+                            </div>
+
+                            <!-- Representative Information -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3">Thông tin người đại diện</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="representative_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="representative_name" name="representative_name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="representative_phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="representative_phone" name="representative_phone" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="representative_email" class="form-label">Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="representative_email" name="representative_email" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="representative_id_number" class="form-label">Số CMND/CCCD <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="representative_id_number" name="representative_id_number" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="representative_position" class="form-label">Chức vụ</label>
+                                    <input type="text" class="form-control" id="representative_position" name="representative_position" placeholder="Giám đốc, Chủ cửa hàng...">
+                                </div>
+                            </div>
+
+                            <!-- Bank Information -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3">Thông tin tài khoản ngân hàng</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bank_name" class="form-label">Tên ngân hàng <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="bank_name" name="bank_name" required>
+                                            <option value="">Chọn ngân hàng</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bank_account_number" class="form-label">Số tài khoản <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="bank_account_number" name="bank_account_number" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bank_account_name" class="form-label">Tên chủ tài khoản <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="bank_account_name" name="bank_account_name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bank_branch" class="form-label">Chi nhánh</label>
+                                        <input type="text" class="form-control" id="bank_branch" name="bank_branch">
+                                    </div>
+                                </div>
+                                
+                                <!-- Card Information (Optional) -->
+                                <div class="mt-4 pt-4 border-top">
+                                    <h6 class="text-secondary mb-3">
+                                        <i class="fas fa-credit-card me-2"></i>Thông tin thẻ thanh toán quốc tế (Tùy chọn)
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Loại thẻ</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="card_type" id="card_visa" value="visa">
+                                                <label class="form-check-label" for="card_visa">
+                                                    <i class="fab fa-cc-visa me-1"></i>Visa
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="card_type" id="card_mastercard" value="mastercard">
+                                                <label class="form-check-label" for="card_mastercard">
+                                                    <i class="fab fa-cc-mastercard me-1"></i>Mastercard
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="card_type" id="card_jcb" value="jcb">
+                                                <label class="form-check-label" for="card_jcb">
+                                                    <i class="fab fa-cc-jcb me-1"></i>JCB
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="card_number" class="form-label">Số thẻ</label>
+                                            <input type="text" class="form-control" id="card_number" name="card_number" 
+                                                   maxlength="19" placeholder="1234 5678 9012 3456" 
+                                                   autocomplete="cc-number">
+                                            <small class="text-muted">Nhập số thẻ không có khoảng trắng hoặc dấu gạch ngang</small>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="card_holder_name" class="form-label">Tên chủ thẻ</label>
+                                            <input type="text" class="form-control" id="card_holder_name" name="card_holder_name" 
+                                                   placeholder="NGUYEN VAN A" autocomplete="cc-name">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="card_expiry" class="form-label">Ngày hết hạn (MM/YY)</label>
+                                            <input type="text" class="form-control" id="card_expiry" name="card_expiry" 
+                                                   maxlength="5" placeholder="12/25" autocomplete="cc-exp">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="card_cvv" class="form-label">CVV</label>
+                                            <input type="text" class="form-control" id="card_cvv" name="card_cvv" 
+                                                   maxlength="4" placeholder="123" autocomplete="cc-csc">
+                                            <small class="text-muted">3-4 chữ số ở mặt sau thẻ</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- File Uploads -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3">Tài liệu đính kèm</h5>
+                                <div class="mb-3">
+                                    <label for="business_license_file" class="form-label">Giấy phép kinh doanh</label>
+                                    <input type="file" class="form-control" id="business_license_file" name="business_license_file" accept=".pdf,.jpg,.jpeg,.png">
+                                    <small class="text-muted">Chấp nhận file PDF, JPG, PNG. Tối đa 16MB.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="representative_id_file" class="form-label">CMND/CCCD người đại diện</label>
+                                    <input type="file" class="form-control" id="representative_id_file" name="representative_id_file" accept=".pdf,.jpg,.jpeg,.png">
+                                    <small class="text-muted">Chấp nhận file PDF, JPG, PNG. Tối đa 16MB.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="business_location_photos" class="form-label">Hình ảnh địa điểm kinh doanh</label>
+                                    <input type="file" class="form-control" id="business_location_photos" name="business_location_photos" multiple accept=".jpg,.jpeg,.png">
+                                    <small class="text-muted">Có thể chọn nhiều file. Chấp nhận JPG, PNG. Tối đa 16MB mỗi file.</small>
+                                </div>
+                            </div>
+
+                            <!-- Terms and Conditions -->
+                            <div class="mb-4" data-section="terms">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="accept_terms" required>
+                                    <label class="form-check-label" for="accept_terms">
+                                        Tôi đồng ý với <a href="#" target="_blank">Điều khoản và Điều kiện</a> cũng như <a href="#" target="_blank">Chính sách bảo mật</a> của ZaloPay <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Identity Verification (Step 7) -->
+                            <div class="mb-4" data-section="identity_verification">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-id-card me-2"></i>Xác minh định danh người đại diện
+                                </h5>
+                                
+                                <div class="alert alert-info mb-4">
+                                    <h6><i class="fas fa-info-circle me-2"></i>Lý do yêu cầu xác minh</h6>
+                                    <p class="mb-2">
+                                        <strong>Hình ảnh thẻ:</strong> Để xác minh và đối chiếu sau khi hoàn tất hợp đồng, 
+                                        nhà nước có căn cứ đối chiếu các bên và phân biệt được dòng tiền là doanh thu 
+                                        trong hoạt động kinh doanh của cá nhân hoặc hộ kinh doanh.
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>Lịch sử giao dịch:</strong> Dữ liệu chứng minh về dòng tiền của cá nhân 
+                                        chủ hộ kinh doanh, để đơn vị ZaloPay đối chiếu với ngân hàng và cơ quan quản lý thuế. 
+                                        ZaloPay là đơn vị đối tác chịu trách nhiệm xử lý thuế và là đơn vị thu hộ chịu trách 
+                                        nhiệm báo cáo và đóng thuế của cá nhân hoặc hộ kinh doanh với cơ quan thuế.
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="card_image" class="form-label">
+                                        Hình ảnh thẻ thanh toán <span class="text-danger">*</span>
+                                    </label>
+                                    
+                                    <!-- Giải thích chi tiết lý do -->
+                                    <div class="alert alert-light border-start border-primary border-3 mb-3">
+                                        <div class="d-flex align-items-start">
+                                            <i class="fas fa-info-circle text-primary me-2 mt-1"></i>
+                                            <div>
+                                                <strong>Yêu cầu:</strong> Hình ảnh hai mặt của thẻ Visa/Mastercard/JCB, hoặc hình ảnh hiển thị toàn bộ thông tin thẻ trên app ngân hàng để chứng minh thẻ chính xác với người đăng ký.
+                                                <br><br>
+                                                <strong>Lý do:</strong> Xác minh và bổ sung dữ liệu để sau khi hoàn tất hợp đồng, nhà nước có căn cứ đối chiếu các bên và phân biệt được dòng tiền là doanh thu trong hoạt động kinh doanh của cá nhân hoặc hộ kinh doanh.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="file" class="form-control" id="card_image" name="card_image" 
+                                           accept=".jpg,.jpeg,.png" required>
+                                    <small class="text-muted">
+                                        Chấp nhận JPG, PNG. Tối đa 16MB.
+                                    </small>
+                                    <div id="card_image_preview" class="mt-2"></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="transaction_history" class="form-label">
+                                        Hình ảnh lịch sử giao dịch/Sao kê <span class="text-danger">*</span>
+                                    </label>
+                                    
+                                    <!-- Giải thích chi tiết lý do -->
+                                    <div class="alert alert-light border-start border-primary border-3 mb-3">
+                                        <div class="d-flex align-items-start">
+                                            <i class="fas fa-info-circle text-primary me-2 mt-1"></i>
+                                            <div>
+                                                <strong>Yêu cầu:</strong> Hình ảnh lịch sử giao dịch thông báo số dư hoặc hình ảnh sao kê lịch sử giao dịch gần nhất của thẻ.
+                                                <br><br>
+                                                <strong>Lý do:</strong> Dữ liệu chứng minh về dòng tiền của cá nhân chủ hộ kinh doanh, để đơn vị ZaloPay đối chiếu với ngân hàng và cơ quan quản lý thuế trong việc làm hồ sơ. Yêu cầu đơn vị ZaloPay sẽ là đơn vị đối tác chịu trách nhiệm xử lý thuế và là đơn vị thu hộ chịu trách nhiệm báo cáo và đóng thuế của cá nhân hoặc hộ kinh doanh với cơ quan thuế đang chịu trách nhiệm quản lý cá nhân và hộ kinh doanh.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="file" class="form-control" id="transaction_history" 
+                                           name="transaction_history" accept=".jpg,.jpeg,.png,.pdf" multiple required>
+                                    <small class="text-muted">
+                                        Có thể chọn nhiều file. Chấp nhận JPG, PNG, PDF. Tối đa 16MB mỗi file.
+                                    </small>
+                                    <div id="transaction_history_preview" class="mt-2"></div>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn">
+                                    <i class="fas fa-paper-plane me-2"></i>Gửi đăng ký
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ============================================
+        // OAuth Pre-fill Logic
+        // ============================================
+        function prefillFromOAuth() {
+            // Check URL parameters first
+            const urlParams = new URLSearchParams(window.location.search);
+            const oauthSuccess = urlParams.get('oauth') === 'success';
+            
+            let email = '';
+            let name = '';
+            
+            if (oauthSuccess) {
+                email = urlParams.get('email') || '';
+                name = urlParams.get('name') || '';
+            }
+            
+            // Check sessionStorage
+            const oauthDataStr = sessionStorage.getItem('oauth_data');
+            if (oauthDataStr) {
+                try {
+                    const oauthData = JSON.parse(oauthDataStr);
+                    if (!email && oauthData.email) {
+                        email = oauthData.email;
+                    }
+                    if (!name && oauthData.name) {
+                        name = oauthData.name;
+                    }
+                } catch (e) {
+                    console.error('Error parsing OAuth data:', e);
+                }
+            }
+            
+            // Pre-fill form fields
+            if (email) {
+                const businessEmail = document.getElementById('business_email');
+                const representativeEmail = document.getElementById('representative_email');
+                if (businessEmail) businessEmail.value = email;
+                if (representativeEmail) representativeEmail.value = email;
+            }
+            
+            if (name) {
+                const representativeName = document.getElementById('representative_name');
+                if (representativeName) representativeName.value = name;
+            }
+        }
+        
+        // ============================================
+        // Dynamic Form Fields Based on Business Type
+        // ============================================
+        function toggleBusinessTypeFields() {
+            const businessType = document.querySelector('input[name="business_type"]:checked');
+            const taxCodeField = document.getElementById('tax_code').closest('.col-md-6');
+            const businessLicenseField = document.getElementById('business_license').closest('.col-md-6');
+            const businessLicenseFileField = document.getElementById('business_license_file').closest('.mb-3');
+            
+            if (businessType && businessType.value === 'enterprise') {
+                // Show enterprise fields
+                if (taxCodeField) taxCodeField.style.display = 'block';
+                if (businessLicenseField) businessLicenseField.style.display = 'block';
+                if (businessLicenseFileField) businessLicenseFileField.style.display = 'block';
+            } else {
+                // Hide enterprise fields for individual
+                if (taxCodeField) taxCodeField.style.display = 'none';
+                if (businessLicenseField) businessLicenseField.style.display = 'none';
+                if (businessLicenseFileField) businessLicenseFileField.style.display = 'none';
+                
+                // Clear values
+                document.getElementById('tax_code').value = '';
+                document.getElementById('business_license').value = '';
+            }
+        }
+        
+        // Listen to business type changes
+        document.querySelectorAll('input[name="business_type"]').forEach(radio => {
+            radio.addEventListener('change', toggleBusinessTypeFields);
+        });
+        
+        // ============================================
+        // Auto-save to localStorage
+        // ============================================
+        function saveFormToLocalStorage() {
+            const formData = new FormData(document.getElementById('registrationForm'));
+            const formObject = {};
+            for (let [key, value] of formData.entries()) {
+                formObject[key] = value;
+            }
+            localStorage.setItem('registration_form_data', JSON.stringify(formObject));
+        }
+        
+        function loadFormFromLocalStorage() {
+            const savedData = localStorage.getItem('registration_form_data');
+            if (savedData) {
+                try {
+                    const formObject = JSON.parse(savedData);
+                    Object.keys(formObject).forEach(key => {
+                        const field = document.querySelector(`[name="${key}"]`);
+                        if (field && field.type !== 'file' && field.type !== 'checkbox') {
+                            field.value = formObject[key];
+                        } else if (field && field.type === 'checkbox') {
+                            field.checked = formObject[key] === 'on' || formObject[key] === true;
+                        }
+                    });
+                    
+                    // Trigger business type toggle after loading
+                    toggleBusinessTypeFields();
+                } catch (e) {
+                    console.error('Error loading form data:', e);
+                }
+            }
+        }
+        
+        // Auto-save on input change
+        document.getElementById('registrationForm').addEventListener('input', function() {
+            saveFormToLocalStorage();
+        });
+        
+        // Auto-save on change (for selects, radios, checkboxes)
+        document.getElementById('registrationForm').addEventListener('change', function() {
+            saveFormToLocalStorage();
+        });
+        
+        // ============================================
+        // Real-time Validation
+        // ============================================
+        function validateField(field) {
+            const value = field.value.trim();
+            const fieldId = field.id;
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Remove previous error styling
+            field.classList.remove('is-invalid', 'is-valid');
+            const errorElement = field.parentElement.querySelector('.invalid-feedback');
+            if (errorElement) {
+                errorElement.remove();
+            }
+            
+            // Required field validation
+            if (field.hasAttribute('required') && !value) {
+                isValid = false;
+                errorMessage = 'Trường này là bắt buộc';
+            }
+            
+            // Email validation
+            if (field.type === 'email' && value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    isValid = false;
+                    errorMessage = 'Email không hợp lệ';
+                }
+            }
+            
+            // Phone validation (Vietnamese format)
+            if (field.type === 'tel' && value) {
+                const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+                if (!phoneRegex.test(value.replace(/\s/g, ''))) {
+                    isValid = false;
+                    errorMessage = 'Số điện thoại không hợp lệ';
+                }
+            }
+            
+            // URL validation
+            if (field.type === 'url' && value) {
+                try {
+                    new URL(value);
+                } catch (e) {
+                    isValid = false;
+                    errorMessage = 'URL không hợp lệ';
+                }
+            }
+            
+            // CMND/CCCD validation
+            if (fieldId === 'representative_id_number' && value) {
+                const idRegex = /^[0-9]{9}$|^[0-9]{12}$/;
+                if (!idRegex.test(value)) {
+                    isValid = false;
+                    errorMessage = 'CMND/CCCD phải có 9 hoặc 12 số';
+                }
+            }
+            
+            // Tax code validation
+            if (fieldId === 'tax_code' && value) {
+                const taxRegex = /^[0-9]{10}$|^[0-9]{13}$/;
+                if (!taxRegex.test(value)) {
+                    isValid = false;
+                    errorMessage = 'Mã số thuế phải có 10 hoặc 13 số';
+                }
+            }
+            
+            // Card number validation (Luhn algorithm)
+            if (fieldId === 'card_number' && value) {
+                if (!validateCardNumber(value)) {
+                    isValid = false;
+                    errorMessage = 'Số thẻ không hợp lệ';
+                }
+            }
+            
+            // Card expiry date validation
+            if (fieldId === 'card_expiry' && value) {
+                if (!validateExpiryDate(value)) {
+                    isValid = false;
+                    errorMessage = 'Ngày hết hạn không hợp lệ (định dạng MM/YY)';
+                }
+            }
+            
+            // CVV validation
+            if (fieldId === 'card_cvv' && value) {
+                if (!validateCVV(value)) {
+                    isValid = false;
+                    errorMessage = 'CVV phải có 3 hoặc 4 chữ số';
+                }
+            }
+            
+            // Apply validation styling
+            if (value) { // Only show validation if field has value
+                if (isValid) {
+                    field.classList.add('is-valid');
+                } else {
+                    field.classList.add('is-invalid');
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback';
+                    errorDiv.textContent = errorMessage;
+                    field.parentElement.appendChild(errorDiv);
+                }
+            }
+            
+            return isValid;
+        }
+        
+        // Add real-time validation to all form fields
+        document.querySelectorAll('#registrationForm input, #registrationForm select, #registrationForm textarea').forEach(field => {
+            field.addEventListener('blur', function() {
+                validateField(this);
+            });
+            
+            // Clear validation on input (for better UX)
+            field.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid')) {
+                    this.classList.remove('is-invalid');
+                    const errorElement = this.parentElement.querySelector('.invalid-feedback');
+                    if (errorElement) {
+                        errorElement.remove();
+                    }
+                }
+            });
+        });
+        
+        // ============================================
+        // Load banks from API
+        // ============================================
+        fetch('/api/banks')
+            .then(response => response.json())
+            .then(banks => {
+                const select = document.getElementById('bank_name');
+                banks.forEach(bank => {
+                    const option = document.createElement('option');
+                    option.value = bank;
+                    option.textContent = bank;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading banks:', error);
+            });
+
+        // ============================================
+        // Form validation and submission
+        // ============================================
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate all fields
+            let isFormValid = true;
+            document.querySelectorAll('#registrationForm input[required], #registrationForm select[required], #registrationForm textarea[required]').forEach(field => {
+                if (!validateField(field)) {
+                    isFormValid = false;
+                }
+            });
+            
+            // Check terms checkbox
+            const acceptTerms = document.getElementById('accept_terms');
+            if (!acceptTerms.checked) {
+                isFormValid = false;
+                alert('Vui lòng đồng ý với Điều khoản và Điều kiện');
+                return;
+            }
+            
+            if (!isFormValid) {
+                alert('Vui lòng kiểm tra lại các trường thông tin');
+                // Scroll to first invalid field
+                const firstInvalid = document.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+            
+            // Submit form
+            const formData = new FormData(this);
+            fetch('/api/merchant/register', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear saved form data
+                    localStorage.removeItem('registration_form_data');
+                    // Show success message and redirect
+                    alert('Đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.');
+                    window.location.href = '/merchant/';
+                } else {
+                    throw new Error(data.error || 'Đăng ký thất bại');
+                }
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                alert('Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Gửi đăng ký';
+            });
+        });
+        
+        // ============================================
+        // Card Validation Functions
+        // ============================================
+        function validateCardNumber(cardNumber) {
+            // Remove spaces and dashes
+            const cleaned = cardNumber.replace(/[\s-]/g, '');
+            
+            // Check if all digits
+            if (!/^\d+$/.test(cleaned)) return false;
+            
+            // Check length (13-19 digits)
+            if (cleaned.length < 13 || cleaned.length > 19) return false;
+            
+            // Luhn algorithm
+            let sum = 0;
+            let isEven = false;
+            
+            for (let i = cleaned.length - 1; i >= 0; i--) {
+                let digit = parseInt(cleaned[i]);
+                
+                if (isEven) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                
+                sum += digit;
+                isEven = !isEven;
+            }
+            
+            return sum % 10 === 0;
+        }
+        
+        function validateExpiryDate(expiry) {
+            // Format: MM/YY
+            const expiryRegex = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
+            if (!expiryRegex.test(expiry)) return false;
+            
+            const [month, year] = expiry.split('/');
+            const expiryMonth = parseInt(month);
+            const expiryYear = 2000 + parseInt(year);
+            
+            // Get current date
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+            
+            // Check if expiry date is in the future
+            if (expiryYear < currentYear) return false;
+            if (expiryYear === currentYear && expiryMonth < currentMonth) return false;
+            
+            return true;
+        }
+        
+        function validateCVV(cvv) {
+            // CVV should be 3 or 4 digits
+            const cvvRegex = /^[0-9]{3,4}$/;
+            return cvvRegex.test(cvv);
+        }
+        
+        function detectCardType(cardNumber) {
+            const cleaned = cardNumber.replace(/[\s-]/g, '');
+            
+            if (cleaned.startsWith('4')) return 'visa';
+            if (cleaned.startsWith('5') || cleaned.startsWith('2')) return 'mastercard';
+            if (cleaned.startsWith('35')) return 'jcb';
+            
+            return null;
+        }
+        
+        // Auto-format card number with spaces
+        document.getElementById('card_number')?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+            if (formatted.length <= 19) {
+                e.target.value = formatted;
+            }
+            
+            // Auto-detect card type
+            const cardType = detectCardType(value);
+            if (cardType) {
+                document.getElementById(`card_${cardType}`).checked = true;
+            }
+        });
+        
+        // Auto-format expiry date
+        document.getElementById('card_expiry')?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // ============================================
+        // Progress Indicator Logic
+        // ============================================
+        function updateProgressIndicator() {
+            const sections = [
+                { id: 'business_type', step: 1 },
+                { id: 'business_info', step: 2 },
+                { id: 'representative_info', step: 3 },
+                { id: 'bank_info', step: 4 },
+                { id: 'documents', step: 5 },
+                { id: 'terms', step: 6 },
+                { id: 'identity_verification', step: 7 }
+            ];
+            
+            let currentStep = 1;
+            let completedSteps = 0;
+            
+            // Check which section is in view
+            sections.forEach((section, index) => {
+                const element = document.querySelector(`[data-section="${section.id}"]`) || 
+                               document.getElementById(section.id) ||
+                               document.querySelector(`#${section.id}`);
+                
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+                    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                    
+                    if (isVisible) {
+                        currentStep = Math.max(currentStep, section.step);
+                    }
+                    
+                    // Check if section is completed
+                    const isCompleted = checkSectionCompleted(section.id);
+                    if (isCompleted) {
+                        completedSteps = Math.max(completedSteps, section.step);
+                    }
+                }
+            });
+            
+            // Update progress indicator
+            document.querySelectorAll('.step').forEach((step, index) => {
+                const stepNum = index + 1;
+                step.classList.remove('active', 'completed');
+                
+                if (stepNum <= completedSteps) {
+                    step.classList.add('completed');
+                } else if (stepNum === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+            
+            // Update step lines
+            document.querySelectorAll('.step-line').forEach((line, index) => {
+                const stepNum = index + 1;
+                line.classList.remove('completed');
+                if (stepNum < completedSteps) {
+                    line.classList.add('completed');
+                }
+            });
+        }
+        
+        function checkSectionCompleted(sectionId) {
+            // Simple check - if all required fields in section are filled
+            const section = document.querySelector(`[data-section="${sectionId}"]`) || 
+                           document.getElementById(sectionId);
+            if (!section) return false;
+            
+            const requiredFields = section.querySelectorAll('input[required], select[required], textarea[required]');
+            let allFilled = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    allFilled = false;
+                }
+            });
+            
+            return allFilled;
+        }
+        
+        // Update progress on scroll and input
+        window.addEventListener('scroll', updateProgressIndicator);
+        document.getElementById('registrationForm').addEventListener('input', updateProgressIndicator);
+        document.getElementById('registrationForm').addEventListener('change', updateProgressIndicator);
+        
+        // ============================================
+        // Character Counters for Textarea
+        // ============================================
+        function initCharacterCounters() {
+            const textareas = document.querySelectorAll('textarea[maxlength]');
+            
+            textareas.forEach(textarea => {
+                const maxLength = parseInt(textarea.getAttribute('maxlength'));
+                const counterId = textarea.id + '_counter';
+                const countId = textarea.id + '_count';
+                
+                // Create counter if doesn't exist
+                if (!document.getElementById(counterId)) {
+                    const counter = document.createElement('div');
+                    counter.className = 'char-counter';
+                    counter.id = counterId;
+                    counter.innerHTML = `<span id="${countId}">0</span>/${maxLength} ký tự`;
+                    textarea.parentElement.appendChild(counter);
+                }
+                
+                // Update counter
+                const updateCounter = () => {
+                    const count = textarea.value.length;
+                    const countElement = document.getElementById(countId);
+                    const counterElement = document.getElementById(counterId);
+                    
+                    if (countElement) {
+                        countElement.textContent = count;
+                    }
+                    
+                    // Update counter color
+                    if (counterElement) {
+                        counterElement.classList.remove('warning', 'danger');
+                        const percentage = (count / maxLength) * 100;
+                        
+                        if (percentage >= 90) {
+                            counterElement.classList.add('danger');
+                        } else if (percentage >= 75) {
+                            counterElement.classList.add('warning');
+                        }
+                    }
+                };
+                
+                // Initial update
+                updateCounter();
+                
+                // Update on input
+                textarea.addEventListener('input', updateCounter);
+            });
+        }
+        
+        // ============================================
+        // Accessibility Improvements
+        // ============================================
+        function improveAccessibility() {
+            // Add ARIA labels to form fields
+            document.querySelectorAll('input, select, textarea').forEach(field => {
+                const label = document.querySelector(`label[for="${field.id}"]`);
+                if (label && !field.getAttribute('aria-label')) {
+                    field.setAttribute('aria-label', label.textContent.trim());
+                }
+                
+                // Add aria-required for required fields
+                if (field.hasAttribute('required') && !field.getAttribute('aria-required')) {
+                    field.setAttribute('aria-required', 'true');
+                }
+                
+                // Add aria-invalid for invalid fields
+                if (field.classList.contains('is-invalid')) {
+                    field.setAttribute('aria-invalid', 'true');
+                }
+            });
+            
+            // Add ARIA live region for error messages
+            if (!document.getElementById('aria-live-region')) {
+                const liveRegion = document.createElement('div');
+                liveRegion.id = 'aria-live-region';
+                liveRegion.className = 'sr-only';
+                liveRegion.setAttribute('aria-live', 'polite');
+                liveRegion.setAttribute('aria-atomic', 'true');
+                document.body.appendChild(liveRegion);
+            }
+            
+            // Announce errors to screen readers
+            const originalValidateField = validateField;
+            validateField = function(field) {
+                const result = originalValidateField(field);
+                const liveRegion = document.getElementById('aria-live-region');
+                
+                if (liveRegion && !result) {
+                    const errorElement = field.parentElement.querySelector('.invalid-feedback');
+                    if (errorElement) {
+                        liveRegion.textContent = errorElement.textContent;
+                    }
+                }
+                
+                return result;
+            };
+        }
+        
+        // ============================================
+        // Image Preview Functions
+        // ============================================
+        function initImagePreviews() {
+            // Card image preview
+            const cardImageInput = document.getElementById('card_image');
+            if (cardImageInput) {
+                cardImageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Validate file type
+                        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                        if (!validTypes.includes(file.type)) {
+                            alert('Chỉ chấp nhận file JPG, JPEG, PNG');
+                            e.target.value = '';
+                            return;
+                        }
+                        
+                        // Validate file size (16MB)
+                        if (file.size > 16 * 1024 * 1024) {
+                            alert('File quá lớn. Tối đa 16MB');
+                            e.target.value = '';
+                            return;
+                        }
+                        
+                        // Show preview
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const preview = document.getElementById('card_image_preview');
+                            preview.innerHTML = `
+                                <div class="image-preview-container">
+                                    <img src="${e.target.result}" alt="Card preview" class="img-thumbnail" style="max-width: 300px; max-height: 200px;">
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="document.getElementById('card_image').value=''; document.getElementById('card_image_preview').innerHTML='';">
+                                        <i class="fas fa-times me-1"></i>Xóa
+                                    </button>
+                                </div>
+                            `;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            // Transaction history preview (multiple files)
+            const transactionHistoryInput = document.getElementById('transaction_history');
+            if (transactionHistoryInput) {
+                transactionHistoryInput.addEventListener('change', function(e) {
+                    const files = Array.from(e.target.files);
+                    const preview = document.getElementById('transaction_history_preview');
+                    preview.innerHTML = '';
+                    
+                    files.forEach((file, index) => {
+                        // Validate file type
+                        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                        if (!validTypes.includes(file.type)) {
+                            alert(`File ${file.name} không đúng định dạng. Chỉ chấp nhận JPG, PNG, PDF`);
+                            return;
+                        }
+                        
+                        // Validate file size (16MB)
+                        if (file.size > 16 * 1024 * 1024) {
+                            alert(`File ${file.name} quá lớn. Tối đa 16MB`);
+                            return;
+                        }
+                        
+                        // Show preview for images only
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const previewItem = document.createElement('div');
+                                previewItem.className = 'image-preview-item mb-2';
+                                previewItem.innerHTML = `
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="${e.target.result}" alt="Preview ${index + 1}" class="img-thumbnail" style="max-width: 150px; max-height: 100px;">
+                                        <div>
+                                            <small class="d-block">${file.name}</small>
+                                            <small class="text-muted">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                                        </div>
+                                    </div>
+                                `;
+                                preview.appendChild(previewItem);
+                            };
+                            reader.readAsDataURL(file);
+                        } else {
+                            // For PDF files, just show file info
+                            const previewItem = document.createElement('div');
+                            previewItem.className = 'file-preview-item mb-2';
+                            previewItem.innerHTML = `
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-file-pdf text-danger" style="font-size: 2rem;"></i>
+                                    <div>
+                                        <small class="d-block">${file.name}</small>
+                                        <small class="text-muted">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                                    </div>
+                                </div>
+                            `;
+                            preview.appendChild(previewItem);
+                        }
+                    });
+                });
+            }
+        }
+        
+        // ============================================
+        // Initialize on page load
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Pre-fill from OAuth
+            prefillFromOAuth();
+            
+            // Load saved form data
+            loadFormFromLocalStorage();
+            
+            // Initialize business type fields visibility
+            toggleBusinessTypeFields();
+            
+            // Initialize progress indicator
+            updateProgressIndicator();
+            
+            // Initialize character counters
+            initCharacterCounters();
+            
+            // Improve accessibility
+            improveAccessibility();
+            
+            // Initialize image previews
+            initImagePreviews();
+            
+            // Add data-section attributes for progress tracking
+            const businessTypeSection = document.querySelector('.mb-4:has([name="business_type"])');
+            if (businessTypeSection) businessTypeSection.setAttribute('data-section', 'business_type');
+            
+            const businessInfoSection = document.querySelector('.mb-4:has(#business_name)');
+            if (businessInfoSection) businessInfoSection.setAttribute('data-section', 'business_info');
+            
+            const representativeSection = document.querySelector('.mb-4:has(#representative_name)');
+            if (representativeSection) representativeSection.setAttribute('data-section', 'representative_info');
+            
+            const bankSection = document.querySelector('.mb-4:has(#bank_name)');
+            if (bankSection) bankSection.setAttribute('data-section', 'bank_info');
+            
+            const documentsSection = document.querySelector('.mb-4:has(#business_license_file)');
+            if (documentsSection) documentsSection.setAttribute('data-section', 'documents');
+            
+            const termsSection = document.querySelector('.mb-4:has(#accept_terms)');
+            if (termsSection) termsSection.setAttribute('data-section', 'terms');
+        });
+    </script>
+    
+    <!-- Client-side Encryption -->
+    <script src="/js/encryption.js"></script>
+    
+    <!-- Registration Form Handler -->
+    <script src="/js/main.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+</body>
+</html>

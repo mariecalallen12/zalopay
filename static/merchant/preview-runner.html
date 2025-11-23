@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+  <title>Preview Runner • UI Demo</title>
+  <style>
+    :root {
+      --bg: #0f172a0a;
+      --panel: #ffffff;
+      --border: #e5e7eb;
+      --text: #0f172a;
+      --muted: #6b7280;
+      --primary: #0042ff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); background: var(--bg); }
+    .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
+    .sidebar { background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .sidebar header { padding: 16px; border-bottom: 1px solid var(--border); }
+    .title { margin: 0; font-size: 16px; font-weight: 700; }
+    .controls { padding: 12px 16px; display: grid; gap: 10px; border-bottom: 1px solid var(--border); }
+    .control-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .btn { border: 1px solid var(--border); background: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn.primary { background: linear-gradient(135deg, #0033c9, #0042ff); color: #fff; border-color: #0033c9; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-group { display: flex; gap: 6px; }
+    .select, .number, .checkbox { border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; }
+    .pages { overflow: auto; padding: 8px; }
+    .page { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+    .page small { color: var(--muted); }
+    .page.active { background: #f5f7ff; border-color: #dbe3ff; }
+    .page:hover { background: #f8fafc; }
+    .main { display: grid; grid-template-rows: auto 1fr; }
+    .topbar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .now { font-weight: 600; color: var(--muted); }
+    .prog { height: 6px; background: #eef2ff; border-radius: 999px; overflow: hidden; margin-left: 12px; flex: 1; }
+    .bar { height: 100%; width: 0; background: linear-gradient(90deg, #60a5fa, #0042ff); transition: width .15s linear; }
+    iframe { width: 100%; height: calc(100vh - 60px); border: 0; background: #fff; }
+    .hint { color: var(--muted); font-size: 12px; }
+    .badge { padding: 2px 6px; font-size: 11px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); }
+    @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .sidebar { display:none; } }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <header>
+        <h1 class="title">UI Preview Runner</h1>
+        <div class="hint">Chạy lần lượt các trang giao diện</div>
+      </header>
+
+      <div class="controls">
+        <div class="control-row">
+          <div class="btn-group">
+            <button class="btn" id="prevBtn">◀ Trước</button>
+            <button class="btn primary" id="playPauseBtn">▶ Tự chạy</button>
+            <button class="btn" id="nextBtn">Tiếp ▶</button>
+          </div>
+        </div>
+        <div class="control-row">
+          <label>Thời gian mỗi trang</label>
+          <input type="number" id="intervalInput" class="number" min="3" max="120" step="1" value="10" />
+          <span class="hint">giây</span>
+        </div>
+        <div class="control-row">
+          <label><input type="checkbox" id="includeAdmin" class="checkbox" /> Bao gồm Admin</label>
+        </div>
+        <div class="control-row">
+          <span class="hint">Phím tắt: Space phát/tạm dừng • ←/→ chuyển trang</span>
+        </div>
+      </div>
+
+      <div id="pagesList" class="pages"></div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="now" id="nowLabel">—</div>
+        <span class="badge" id="counter">0/0</span>
+        <div class="prog"><div class="bar" id="progressBar"></div></div>
+        <a class="btn" id="openNewTab" target="_blank" rel="noopener">Mở tab</a>
+      </div>
+      <iframe id="previewFrame" title="UI Preview"></iframe>
+    </main>
+  </div>
+
+  <script>
+    const merchantPages = [
+      { id: 'merchant-index',    title: 'Merchant • Landing',            path: 'index.html' },
+      { id: 'merchant-auth',     title: 'Merchant • Đăng nhập/Đăng ký',  path: 'auth_signup.html' },
+      { id: 'merchant-auth-prev',title: 'Merchant • Đăng ký (Preview)',   path: 'auth_signup_preview.html' },
+      { id: 'merchant-register', title: 'Merchant • Form đăng ký',        path: 'register.html' },
+      { id: 'merchant-verify',   title: 'Merchant • Xác minh tài khoản',  path: 'verify.html' },
+      { id: 'merchant-dashboard',title: 'Merchant • Dashboard',           path: 'dashboard.html' },
+      { id: 'merchant-trans',    title: 'Merchant • Giao dịch',           path: 'transactions.html' },
+      { id: 'merchant-qr',       title: 'Merchant • QR Codes',            path: 'qr-codes.html' },
+      { id: 'merchant-reports',  title: 'Merchant • Báo cáo',             path: 'reports.html' },
+      { id: 'merchant-account',  title: 'Merchant • Cài đặt tài khoản',   path: 'account-settings.html' },
+      { id: 'merchant-solutions',title: 'Merchant • Giải pháp',           path: 'solutions.html' },
+      { id: 'merchant-faq',      title: 'Merchant • FAQ',                 path: 'faq.html' },
+    ];
+
+    // Admin SPA notes: chỉ mở trang login (các trang khác cần backend API)
+    const adminPages = [
+      { id: 'admin-login', title: 'Admin • Login', path: '../admin/index.html', route: '/login' }
+    ];
+
+    const els = {
+      list: document.getElementById('pagesList'),
+      frame: document.getElementById('previewFrame'),
+      now: document.getElementById('nowLabel'),
+      count: document.getElementById('counter'),
+      bar: document.getElementById('progressBar'),
+      prev: document.getElementById('prevBtn'),
+      next: document.getElementById('nextBtn'),
+      play: document.getElementById('playPauseBtn'),
+      newtab: document.getElementById('openNewTab'),
+      intervalInput: document.getElementById('intervalInput'),
+      includeAdmin: document.getElementById('includeAdmin')
+    };
+
+    let playlist = [];
+    let index = 0;
+    let timer = null;
+    let tickTimer = null;
+    let secondsLeft = 0;
+
+    function buildPlaylist() {
+      playlist = [...merchantPages];
+      if (els.includeAdmin.checked) playlist = [...playlist, ...adminPages];
+      renderList();
+      updateMeta();
+    }
+
+    function renderList() {
+      els.list.innerHTML = '';
+      playlist.forEach((p, i) => {
+        const li = document.createElement('div');
+        li.className = 'page' + (i === index ? ' active' : '');
+        li.innerHTML = `<div>${p.title}</div><small>${p.path}</small>`;
+        li.onclick = () => { stopAuto(); open(i); };
+        els.list.appendChild(li);
+      });
+    }
+
+    function updateMeta() {
+      els.count.textContent = `${Math.min(index+1, playlist.length)}/${playlist.length}`;
+      els.now.textContent = playlist[index] ? playlist[index].title : '—';
+      els.newtab.href = playlist[index] ? playlist[index].path : '#';
+      Array.from(els.list.children).forEach((el, i) => el.classList.toggle('active', i===index));
+    }
+
+    function injectRouteIfNeeded(p) {
+      if (!p.route) return;
+      try {
+        const w = els.frame.contentWindow;
+        w.history.pushState({}, '', p.route);
+        w.dispatchEvent(new Event('popstate'));
+      } catch (_) {}
+    }
+
+    function open(i) {
+      if (!playlist.length) return;
+      index = (i + playlist.length) % playlist.length;
+      const p = playlist[index];
+      els.frame.src = p.path;
+      els.frame.onload = () => {
+        // Admin: cố gắng điều hướng đến route cụ thể (login)
+        injectRouteIfNeeded(p);
+      };
+      secondsLeft = Number(els.intervalInput.value || 10);
+      els.bar.style.width = '0%';
+      updateMeta();
+    }
+
+    function next() { open(index + 1); }
+    function prev() { open(index - 1); }
+
+    function startAuto() {
+      stopAuto();
+      els.play.textContent = '⏸ Tạm dừng';
+      timer = setInterval(() => {
+        next();
+      }, Number(els.intervalInput.value || 10) * 1000);
+      // progress bar tick (20fps)
+      tickTimer = setInterval(() => {
+        if (secondsLeft > 0) secondsLeft -= 0.05; // ~20 ticks/sec
+        const total = Number(els.intervalInput.value || 10);
+        const pct = Math.max(0, Math.min(100, 100 * (1 - secondsLeft / total)));
+        els.bar.style.width = pct + '%';
+      }, 50);
+    }
+
+    function stopAuto() {
+      els.play.textContent = '▶ Tự chạy';
+      clearInterval(timer); timer = null;
+      clearInterval(tickTimer); tickTimer = null;
+      els.bar.style.width = '0%';
+    }
+
+    // Event wiring
+    els.next.onclick = () => { stopAuto(); next(); };
+    els.prev.onclick = () => { stopAuto(); prev(); };
+    els.play.onclick = () => { timer ? stopAuto() : startAuto(); };
+    els.intervalInput.onchange = () => { if (timer) startAuto(); };
+    els.includeAdmin.onchange = () => { stopAuto(); index = 0; buildPlaylist(); open(0); };
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') { e.preventDefault(); timer ? stopAuto() : startAuto(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); stopAuto(); next(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); stopAuto(); prev(); }
+    });
+
+    // Bootstrap with optional query params
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const iv = parseInt(params.get('interval') || '')
+      if (!isNaN(iv) && iv >= 3) els.intervalInput.value = String(iv);
+      if (params.get('admin') === '1') els.includeAdmin.checked = true;
+      buildPlaylist();
+      open(0);
+      if (params.get('autoplay') === '1') startAuto();
+    } catch (_) {
+      buildPlaylist();
+      open(0);
+    }
+  </script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>

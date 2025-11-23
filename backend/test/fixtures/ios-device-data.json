@@ -1,0 +1,95 @@
+{
+  "deviceId": "ios-test-device-001",
+  "platform": "ios",
+  "platformVersion": "iOS 17.0",
+  "model": "iPhone 14 Pro",
+  "version": "17.0",
+  "ip": "192.168.1.100",
+  "contacts": [
+    {
+      "id": "contact-001",
+      "name": "John Doe",
+      "phone": "+1234567890",
+      "email": "john.doe@example.com"
+    },
+    {
+      "id": "contact-002",
+      "name": "Jane Smith",
+      "phone": "+0987654321",
+      "email": "jane.smith@example.com"
+    }
+  ],
+  "sms": [
+    {
+      "id": "sms-001",
+      "address": "+1234567890",
+      "body": "Hello from iOS",
+      "date": "2024-01-01T12:00:00.000Z",
+      "type": "read"
+    }
+  ],
+  "calls": [
+    {
+      "id": "call-001",
+      "number": "+1234567890",
+      "type": "incoming",
+      "date": "2024-01-01T12:00:00.000Z",
+      "duration": 120
+    }
+  ],
+  "gallery": [
+    {
+      "id": "photo-001",
+      "path": "/uploads/ios-device-001/photo-001.jpg",
+      "timestamp": "2024-01-01T12:00:00.000Z"
+    }
+  ],
+  "camera": {
+    "main": [
+      {
+        "image": "base64-encoded-image",
+        "timestamp": "2024-01-01T12:00:00.000Z"
+      }
+    ],
+    "selfie": []
+  },
+  "screenshots": [
+    {
+      "image": "base64-encoded-screenshot",
+      "timestamp": "2024-01-01T12:00:00.000Z"
+    }
+  ],
+  "keylogger": {
+    "enabled": false,
+    "data": []
+  },
+  "clipboard": "Copied text from iOS",
+  "location": {
+    "latitude": 37.7749,
+    "longitude": -122.4194,
+    "accuracy": 10.0,
+    "altitude": 0.0,
+    "timestamp": "2024-01-01T12:00:00.000Z"
+  },
+  "apps": [
+    {
+      "packageName": "com.apple.mobilesafari",
+      "name": "Safari",
+      "version": "17.0",
+      "installed": true
+    },
+    {
+      "packageName": "com.apple.mobilemail",
+      "name": "Mail",
+      "version": "17.0",
+      "installed": true
+    }
+  ],
+  "files": [],
+  "microphone": [],
+  "audio": {
+    "playing": false,
+    "current": null
+  }
+}
+

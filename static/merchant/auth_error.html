@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <title>Đăng nhập không thành công - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .error-container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: shake 0.5s ease-out;
+        }
+        
+        .error-icon i {
+            font-size: 40px;
+            color: white;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .error-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .error-details {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .error-details p {
+            margin: 0;
+            color: #856404;
+            font-size: 0.9rem;
+        }
+        
+        .error-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .btn-retry {
+            background: linear-gradient(135deg, #0033C9 0%, #0042FF 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-retry:hover {
+            background: linear-gradient(135deg, #0029a8 0%, #0038e6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 66, 255, 0.3);
+            color: white;
+        }
+        
+        .btn-alternative {
+            background: transparent;
+            color: #0042FF;
+            border: 2px solid #0042FF;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-alternative:hover {
+            background: #0042FF;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .provider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .provider-badge.google i {
+            color: #4285f4;
+        }
+        
+        .provider-badge.apple i {
+            color: #000000;
+        }
+        
+        .error-code {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 1rem;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="error-title">Đăng nhập không thành công</h1>
+        <p class="error-message" id="errorMessage">
+            Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại hoặc chọn phương thức đăng nhập khác.
+        </p>
+        
+        <div class="provider-badge" id="providerBadge" style="display: none;">
+            <i class="fab" id="providerIcon"></i>
+            <span id="providerName"></span>
+        </div>
+        
+        <div class="error-details" id="errorDetails" style="display: none;">
+            <p><i class="fas fa-info-circle me-2"></i><span id="errorDetailsText"></span></p>
+        </div>
+        
+        <div class="error-actions">
+            <a href="#" class="btn-retry" id="retryBtn">
+                <i class="fas fa-redo me-2"></i>Thử lại
+            </a>
+            <a href="auth_signup_preview.html" class="btn-alternative">
+                <i class="fas fa-arrow-left me-2"></i>Chọn phương thức khác
+            </a>
+        </div>
+        
+        <div class="error-code" id="errorCode" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorType = urlParams.get('type') || 'generic';
+        const provider = urlParams.get('provider') || '';
+        const errorCode = urlParams.get('code') || '';
+        
+        // Error messages mapping
+        const errorMessages = {
+            'invalid_credentials': 'Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại thông tin đăng nhập.',
+            'network_error': 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối internet và thử lại.',
+            'oauth_failed': 'Xác thực OAuth thất bại. Vui lòng thử lại.',
+            'session_expired': 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+            'rate_limit': 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi vài phút trước khi thử lại.',
+            'generic': 'Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại hoặc chọn phương thức đăng nhập khác.'
+        };
+        
+        // Display error message
+        const errorMessageElement = document.getElementById('errorMessage');
+        errorMessageElement.textContent = errorMessages[errorType] || errorMessages['generic'];
+        
+        // Display provider info if available
+        if (provider) {
+            const providerBadge = document.getElementById('providerBadge');
+            const providerIcon = document.getElementById('providerIcon');
+            const providerName = document.getElementById('providerName');
+            
+            providerBadge.style.display = 'inline-flex';
+            
+            if (provider === 'google') {
+                providerIcon.className = 'fab fa-google';
+                providerName.textContent = 'Google';
+                providerBadge.classList.add('google');
+            } else if (provider === 'apple') {
+                providerIcon.className = 'fab fa-apple';
+                providerName.textContent = 'Apple ID';
+                providerBadge.classList.add('apple');
+            } else {
+                providerName.textContent = provider;
+            }
+        }
+        
+        // Display error details if available
+        const errorDetailsParam = urlParams.get('details');
+        if (errorDetailsParam) {
+            const errorDetails = document.getElementById('errorDetails');
+            const errorDetailsText = document.getElementById('errorDetailsText');
+            errorDetails.style.display = 'block';
+            errorDetailsText.textContent = decodeURIComponent(errorDetailsParam);
+        }
+        
+        // Display error code if available
+        if (errorCode) {
+            const errorCodeElement = document.getElementById('errorCode');
+            errorCodeElement.style.display = 'block';
+            errorCodeElement.textContent = `Error Code: ${errorCode}`;
+        }
+        
+        // Retry button logic
+        const retryBtn = document.getElementById('retryBtn');
+        retryBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (provider === 'google') {
+                window.location.href = 'google_auth.html';
+            } else if (provider === 'apple') {
+                window.location.href = 'apple_auth.html';
+            } else {
+                window.location.href = 'auth_signup_preview.html';
+            }
+        });
+        
+        // Log error for analytics
+        if (errorType && errorCode) {
+            console.error('OAuth Error:', {
+                type: errorType,
+                provider: provider,
+                code: errorCode,
+                timestamp: new Date().toISOString()
+            });
+        }
+    </script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>
+

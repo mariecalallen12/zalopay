@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <title>ZaloPay Merchant - Nền tảng giải pháp toàn diện cho mọi nhu cầu kinh doanh</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='merchant/css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#solutions">Giải pháp</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#benefits">Lợi ích</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#partners">Đối tác</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#registration-process">Quy trình</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#faq">FAQ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="{{ url_for('merchant.register_form') }}">Đăng ký ngay</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="hero-title">
+                            Nền tảng <span class="text-primary">giải pháp toàn diện</span> 
+                            cho mọi nhu cầu <span class="text-primary">kinh doanh</span>
+                        </h1>
+                        <p class="hero-subtitle">
+                            Zalopay cung cấp hơn 50+ giải pháp để phát triển kinh doanh 
+                            tại cửa hàng online và offline
+                        </p>
+                        <a href="{{ url_for('merchant.register_form') }}" class="btn btn-primary btn-lg hero-cta">
+                            Trở thành đối tác của chúng tôi
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-carousel">
+                        <div id="solutionCarousel" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                <div class="carousel-item active">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/carousel/carousel-nha-hang.svg" 
+                                         class="d-block w-100" alt="Nhà hàng">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/carousel/carousel-ban-le.svg" 
+                                         class="d-block w-100" alt="Bán lẻ">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/carousel/carousel-dvcn.svg" 
+                                         class="d-block w-100" alt="Dịch vụ">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/carousel/carousel-truyen-thong.svg" 
+                                         class="d-block w-100" alt="Truyền thông">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/carousel/carousel-canteen.svg" 
+                                         class="d-block w-100" alt="Căn tin">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/carousel/carousel-bai-do-xe.svg" 
+                                         class="d-block w-100" alt="Bãi đỗ xe">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits" class="benefits-section py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Lợi ích khi trở thành Đối tác</h2>
+                <h3 class="section-subtitle">Tăng trưởng doanh thu cùng Zalopay</h3>
+                <p class="section-description">
+                    Những lợi ích bạn và doanh nghiệp của mình nhận được khi trở thành đối tác của Zalopay
+                </p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="benefit-card text-center">
+                        <div class="benefit-icon">
+                            <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/home/tiep-can-voi-hon-10-trieu.svg" alt="">
+                        </div>
+                        <h4>Tiếp cận với hơn 10 triệu người dùng của Zalopay</h4>
+                        <p>Không tốn chi phí, cơ hội cao để phát triển lượng lớn khách hàng thông qua Zalopay.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="benefit-card text-center">
+                        <div class="benefit-icon">
+                            <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/home/cung-cap-phan-mem-quan-ly.svg" alt="">
+                        </div>
+                        <h4>Cung cấp phần mềm quản lý giao dịch</h4>
+                        <p>Giúp đối tác quản lý đơn hàng khi giao dịch qua Zalopay, không tốn phí vận hành, miễn phí dịch vụ 1 năm</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="benefit-card text-center">
+                        <div class="benefit-icon">
+                            <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/home/chuong-trinh-khuyen-mai.svg" alt="">
+                        </div>
+                        <h4>Chương trình khuyến mãi thường xuyên</h4>
+                        <p>Đa dạng chương trình khuyến mãi cho người dùng và doanh nghiệp/cửa hàng</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="benefit-card text-center">
+                        <div class="benefit-icon">
+                            <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/home/doi-ngu-ho-tro-chuyen-nghiep.svg" alt="">
+                        </div>
+                        <h4>Đội ngũ hỗ trợ chuyên nghiệp</h4>
+                        <p>Hỗ trợ giải quyết khó khăn, các vấn đề của đối tác, cũng như hỗ trợ tích hợp kĩ thuật nếu đối tác có nhu cầu</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solutions Section -->
+    <section id="solutions" class="solutions-section py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Nền tảng toàn diện và thống nhất</h2>
+                <h3 class="section-subtitle">Giải pháp tích hợp toàn diện kết nối mọi hoạt động trong doanh nghiệp của bạn.</h3>
+            </div>
+
+            <!-- Solution Tabs -->
+            <ul class="nav nav-pills justify-content-center mb-4" id="solutionTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#payment">Thanh toán</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#disbursement">Dịch vụ chi hộ</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#selling">Bán hàng</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#marketing">Truyền thông</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#special">Căn tin & Bãi đỗ xe</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- Payment Solutions -->
+                <div class="tab-pane fade show active" id="payment">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="solution-card">
+                                <div class="solution-icon">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/giai-phap/qr-tai-quay.svg" alt="">
+                                </div>
+                                <h4>Mã QR tĩnh tại quầy</h4>
+                                <p>Chấp nhận thanh toán tại cửa hàng không cần máy POS/ Máy quét mã.</p>
+                                <a href="#" class="btn btn-outline-primary">Khám phá ngay</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="solution-card">
+                                <div class="solution-icon">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/giai-phap/ma-qr-tren-may-pos.svg" alt="">
+                                </div>
+                                <h4>Mã QR động trên POS</h4>
+                                <p>Chấp nhận thanh toán tại cửa hàng với máy POS.</p>
+                                <a href="#" class="btn btn-outline-primary">Khám phá ngay</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="solution-card">
+                                <div class="solution-icon">
+                                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/giai-phap//thanh-toan-bang-may-quet-ma.svg" alt="">
+                                </div>
+                                <h4>Thanh toán bằng máy quét mã</h4>
+                                <p>Chấp nhận thanh toán tại cửa hàng với máy quét mã QR</p>
+                                <a href="#" class="btn btn-outline-primary">Khám phá ngay</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other tab content similar structure... -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Business Types Section -->
+    <section class="business-types-section py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Phù hợp với mọi loại hình doanh nghiệp</h2>
+                <h3 class="section-subtitle">Cung cấp những giải pháp phù hợp với nhiều doanh nghiệp có quy mô và loại hình khác nhau</h3>
+                <p class="section-description">
+                    Mỗi doanh nghiệp đều có tầm nhìn riêng về tăng trưởng và phát triển. 
+                    Hãy khám phá cách Zalopay hỗ trợ những thương hiệu nổi tiếng trong và ngoài nước đạt được mục tiêu của mình.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="business-type-card text-center">
+                        <div class="business-icon">
+                            <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/home/nha-hang.svg" alt="">
+                        </div>
+                        <h4>Nhà hàng ăn uống</h4>
+                        <p>Phù hợp với nhà hàng, quán ăn, cửa hàng cafe, trà sữa và các mô hình tương tự.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="business-type-card text-center">
+                        <div class="business-icon">
+                            <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/home/ban-le.svg" alt="">
+                        </div>
+                        <h4>Bán lẻ</h4>
+                        <p>Phù hợp với siêu thị, tạp hoá, cửa hàng tiện lợi, các cửa hàng thời trang, đồ thể thao, mỹ phẩm, trang sức và các mô hình tương tự.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="business-type-card text-center">
+                        <div class="business-icon">
+                            <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/home/dvcn.svg" alt="">
+                        </div>
+                        <h4>Dịch vụ giải trí & chăm sóc cá nhân</h4>
+                        <p>Phù hợp với dịch vụ chăm sóc cá nhân (Giặt ủi, spa, salon, gym...), giải trí (Karaoke, Bi-a,...) và các nền tảng booking.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Section -->
+    <section id="partners" class="partners-section py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Đối tác chiến lược của Zalopay</h2>
+                <p class="section-description">Được tin tưởng bởi 15,000+ doanh nghiệp có quy mô và lĩnh vực khác nhau</p>
+            </div>
+
+            <div class="partners-grid">
+                <!-- Hàng 1: 5 logo -->
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/visa.svg" alt="VISA" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/vietqr.svg" alt="VIETQR Payment Kit" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/napas.svg" alt="napas" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/apple-pay.svg" alt="Apple Pay" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/google.svg" alt="Google" class="partner-logo-img">
+                </div>
+                <!-- Hàng 2: 5 logo -->
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/grab.svg" alt="Grab" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/lazada.svg" alt="Lazada" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/tiktok.svg" alt="TikTok" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/baemin.svg" alt="BAE MIN" class="partner-logo-img">
+                </div>
+                <div class="partner-item">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/bigc.svg" alt="Big C" class="partner-logo-img">
+                </div>
+                <!-- Hàng 3: 1 logo (Mastercard căn giữa) -->
+                <div class="partner-item partner-item-center">
+                    <img src="https://scdn.zalopay.com.vn/merchant-web/homepage/imgs/doi-tac/mastercard.svg" alt="Mastercard" class="partner-logo-img">
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted">Và 15,000+ Đối tác quốc tế và trong nước khác</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Process Section -->
+    <section id="registration-process" class="registration-process-section py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Trở thành đối tác tiếp theo ngay</h2>
+                <h3 class="section-subtitle">Chỉ với <strong>5 phút</strong> duyệt hồ sơ. Trở thành Đối tác của chúng tôi ngay hôm nay!</h3>
+            </div>
+
+            <!-- Business Type Tabs -->
+            <ul class="nav nav-pills justify-content-center mb-4" id="businessTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#individual">Cá nhân/Hộ kinh doanh</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#enterprise">Doanh nghiệp</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="individual">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="process-steps">
+                                <div class="step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h4>Bước 1</h4>
+                                        <p>Tạo tài khoản Zalopay Merchant sử dụng số điện thoại.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h4>Bước 2</h4>
+                                        <p>Điền các trường thông tin trong mẫu đăng ký Thông tin kinh doanh bao gồm tài khoản ngân hàng nhận tiền.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h4>Bước 3</h4>
+                                        <p>Xác nhận hợp đồng & điều khoản điều kiện bằng cách nhập mã OTP gửi qua tài khoản đã đăng ký ở bước 2.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <h4>Hoàn thành</h4>
+                                        <p>Đối tác có thể sử dụng ngay giải pháp Mã QR tại quầy.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="enterprise">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="process-steps">
+                                <div class="step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h4>Bước 1</h4>
+                                        <p>Tạo tài khoản Zalopay Merchant sử dụng số điện thoại.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h4>Bước 2</h4>
+                                        <p>Điền các trường thông tin trong mẫu đăng ký Thông tin kinh doanh bao gồm tài khoản ngân hàng nhận tiền.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h4>Bước 3</h4>
+                                        <p>Zalopay tiến hành thẩm định hồ sơ trong vòng 24h và phản hồi kết quả qua email đã đăng ký của Đối tác.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <h4>Bước 4</h4>
+                                        <p>Ký kết hợp đồng trực tuyến bằng cách nhập số tiền Zalopay gửi qua tài khoản ngân hàng đã đăng ký của Đối tác.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">5</div>
+                                    <div class="step-content">
+                                        <h4>Hoàn thành</h4>
+                                        <p>Đối tác có thể sử dụng ngay giải pháp Mã QR tại quầy. Zalopay sẽ hỗ trợ Đối tác thiết lập các giải pháp khác với quy trình nhanh chóng.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="{{ url_for('merchant.register_form') }}" class="btn btn-primary btn-lg">
+                    Trở thành đối tác của chúng tôi
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Câu hỏi thường gặp</h2>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    Chi phí đăng ký
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Zalopay không thu bất kỳ khoản phí nào trong quá trình Quý Đối Tác đăng ký tài khoản và tích hợp giải pháp thanh toán Zalopay.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Các giải pháp thanh toán cho kinh doanh Offline
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Áp dụng cho tất cả Doanh nghiệp có cửa hàng bán hàng/dịch vụ offline với địa chỉ kinh doanh cụ thể: siêu thị, cửa hàng tiện lợi, quán ăn, cà phê, cửa hàng thời trang, trang sức, v.v…
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Tài liệu cần thiết khi đăng ký
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <strong>Offline:</strong><br>
+                                    - Giấy chứng nhận đăng ký doanh nghiệp<br>
+                                    - Giấy phép ngành nghề kinh doanh có điều kiện<br>
+                                    - Chứng minh nhân dân, Căn cước công dân của người đại diện<br>
+                                    - Hình ảnh chụp địa điểm kinh doanh, hình ảnh chụp cá nhân
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <img src="/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40" class="mb-3">
+                    <p>Nền tảng giải pháp toàn diện cho mọi nhu cầu kinh doanh</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Giải pháp</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">Thanh toán</a></li>
+                        <li><a href="#" class="text-light">Chi hộ</a></li>
+                        <li><a href="#" class="text-light">Bán hàng</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Hỗ trợ</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">FAQ</a></li>
+                        <li><a href="#" class="text-light">Liên hệ</a></li>
+                        <li><a href="#" class="text-light">Hướng dẫn</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5>Liên hệ</h5>
+                    <p>Email: merchant@zalopay.vn<br>
+                    Hotline: 1900 561 456</p>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 ZaloPay. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-light me-3">Điều khoản</a>
+                    <a href="#" class="text-light">Chính sách bảo mật</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='merchant/js/main.js') }}"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+</body>
+</html>

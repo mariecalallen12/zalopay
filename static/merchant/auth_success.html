@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <title>Đăng nhập thành công - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .success-container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        .success-icon i {
+            font-size: 40px;
+            color: white;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .success-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .user-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .user-info-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .user-info-item i {
+            color: #0042FF;
+            width: 20px;
+        }
+        
+        .user-info-item span {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .user-info-item strong {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+        
+        .redirect-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .redirect-info p {
+            margin: 0;
+            color: #004085;
+            font-size: 0.9rem;
+        }
+        
+        .countdown {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0042FF;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0033C9 0%, #0042FF 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .continue-btn {
+            background: linear-gradient(135deg, #0033C9 0%, #0042FF 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .continue-btn:hover {
+            background: linear-gradient(135deg, #0029a8 0%, #0038e6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 66, 255, 0.3);
+        }
+        
+        .provider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .provider-badge.google i {
+            color: #4285f4;
+        }
+        
+        .provider-badge.apple i {
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        
+        <h1 class="success-title">Đăng nhập thành công!</h1>
+        <p class="success-message">
+            Bạn đã đăng nhập thành công. Chúng tôi đang chuẩn bị chuyển bạn đến trang đăng ký.
+        </p>
+        
+        <div class="user-info" id="userInfo">
+            <div class="user-info-item">
+                <i class="fas fa-user"></i>
+                <div>
+                    <span>Chào mừng,</span> <strong id="userName">...</strong>
+                </div>
+            </div>
+            <div class="user-info-item">
+                <i class="fas fa-envelope"></i>
+                <div>
+                    <span>Email:</span> <strong id="userEmail">...</strong>
+                </div>
+            </div>
+            <div class="user-info-item" id="providerInfo" style="display: none;">
+                <i class="fas fa-key"></i>
+                <div>
+                    <span>Đăng nhập bằng:</span> <strong id="providerName">...</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div class="redirect-info">
+            <p>
+                <i class="fas fa-info-circle me-2"></i>
+                Đang chuyển đến trang đăng ký trong <span class="countdown" id="countdown">3</span> giây...
+            </p>
+        </div>
+        
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <button class="continue-btn" id="continueBtn">
+            <i class="fas fa-arrow-right me-2"></i>Tiếp tục ngay
+        </button>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email') || '';
+        const name = urlParams.get('name') || '';
+        const provider = urlParams.get('provider') || 'google';
+        
+        // Display user information
+        document.getElementById('userEmail').textContent = email || 'Đang tải...';
+        document.getElementById('userName').textContent = name || email.split('@')[0] || 'Người dùng';
+        
+        // Display provider info
+        if (provider) {
+            const providerInfo = document.getElementById('providerInfo');
+            const providerName = document.getElementById('providerName');
+            
+            providerInfo.style.display = 'flex';
+            
+            if (provider === 'google') {
+                providerName.innerHTML = '<i class="fab fa-google"></i> Google';
+            } else if (provider === 'apple') {
+                providerName.innerHTML = '<i class="fab fa-apple"></i> Apple ID';
+            } else {
+                providerName.textContent = provider;
+            }
+        }
+        
+        // Store OAuth data in sessionStorage for pre-fill
+        const oauthData = {
+            email: email,
+            name: name,
+            provider: provider
+        };
+        sessionStorage.setItem('oauth_data', JSON.stringify(oauthData));
+        
+        // Countdown và auto-redirect
+        let countdown = 3;
+        const countdownElement = document.getElementById('countdown');
+        const progressBar = document.getElementById('progressBar');
+        const continueBtn = document.getElementById('continueBtn');
+        
+        // Build redirect URL
+        const redirectUrl = `register.html?oauth=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&provider=${provider}`;
+        
+        // Update countdown và progress bar
+        const updateCountdown = () => {
+            countdownElement.textContent = countdown;
+            const progress = ((3 - countdown) / 3) * 100;
+            progressBar.style.width = progress + '%';
+            
+            if (countdown <= 0) {
+                // Redirect
+                window.location.href = redirectUrl;
+            } else {
+                countdown--;
+                setTimeout(updateCountdown, 1000);
+            }
+        };
+        
+        // Start countdown
+        updateCountdown();
+        
+        // Manual continue button
+        continueBtn.addEventListener('click', function() {
+            window.location.href = redirectUrl;
+        });
+        
+        // Keyboard shortcut (Enter to continue)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                window.location.href = redirectUrl;
+            }
+        });
+    </script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>
+

