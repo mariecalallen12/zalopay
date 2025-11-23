@@ -1,5 +1,7 @@
 # ZaloPay Merchant Platform - Nền Tảng Nghiên Cứu Bảo Mật
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mariecalallen12/zalopay?quickstart=1)
+
 ## ⚠️ CẢNH BÁO QUAN TRỌNG
 
 **Dự án này được phát triển HOÀN TOÀN cho mục đích nghiên cứu và giáo dục về bảo mật mạng.**

@@ -1,13 +1,11 @@
 {
   "name": "ZaloPay Merchant Platform",
-  "dockerComposeFile": "../docker-compose.yml",
-  "service": "backend",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18-bullseye",
   "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "18"
-    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
