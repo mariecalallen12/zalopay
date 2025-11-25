@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const config = require('./config');
 const logger = require('./utils/logger');
 
@@ -33,22 +34,24 @@ function createApp(io = null) {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Static files - Merchant web (HTML/JS)
-  app.use(express.static(path.join(__dirname, '../static/merchant')));
-  
-  // Admin web is served via Vite dev server in development
-  // In production, serve from dist folder
+  // Admin web (production): serve built static files if present
   if (process.env.NODE_ENV === 'production') {
-    const adminDistPath = path.join(__dirname, 'static/admin/dist/public');
-    app.use('/admin', express.static(adminDistPath));
-    app.get('/admin/*', (req, res, next) => {
-      res.sendFile(path.join(adminDistPath, 'index.html'), (err) => {
-        if (err) {
-          next(err);
-        }
+    const adminDistPath = path.join(__dirname, '../static/admin/dist/public');
+    if (fs.existsSync(adminDistPath)) {
+      app.use('/admin', express.static(adminDistPath));
+      app.get('/admin/*', (req, res, next) => {
+        res.sendFile(path.join(adminDistPath, 'index.html'), (err) => {
+          if (err) {
+            next(err);
+          }
+        });
       });
-    });
+    }
   }
+
+  // Static files - Merchant web (HTML/JS)
+  // Mount merchant static after admin so /admin routes are handled by admin static
+  app.use(express.static(path.join(__dirname, '../static/merchant')));
 
   // Rate limiting
   app.use('/api', apiLimiter);
