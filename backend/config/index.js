@@ -8,10 +8,15 @@ const { validateEnv, getEnv, getEnvBool, getEnvInt } = require('./env');
 const path = require('path');
 
 // Validate required environment variables
-try {
-  validateEnv();
-} catch (error) {
-  console.warn('Environment validation warning:', error.message);
+const envValidationErrors = validateEnv({
+  strict: process.env.NODE_ENV === 'production',
+});
+
+if (envValidationErrors.length > 0 && process.env.NODE_ENV !== 'production') {
+  console.warn(
+    'Environment validation warnings:\n - ' +
+    envValidationErrors.join('\n - ')
+  );
 }
 
 const config = {
@@ -53,7 +58,8 @@ const config = {
 
   // File Upload
   upload: {
-    maxFileSize: getEnvInt('MAX_FILE_SIZE', 10485760), // 10MB
+    // Align with frontend 16MB limit for identity/document uploads
+    maxFileSize: getEnvInt('MAX_FILE_SIZE', 16 * 1024 * 1024),
     uploadDir: path.join(__dirname, '..', getEnv('UPLOAD_DIR', 'uploads')),
   },
 
@@ -103,4 +109,3 @@ const config = {
 };
 
 module.exports = config;
-

@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/shared/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -92,40 +92,57 @@ const Partners: React.FC = () => {
   const [industryFilter, setIndustryFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+	  const { toast } = useToast();
+	  const queryClient = useQueryClient();
+	
+	  // Fetch partners
+	  const [unavailable, setUnavailable] = useState(false);
+	
+	  const {
+	    data: partnersData,
+	    isLoading,
+	    isError: isPartnersError,
+	    refetch,
+	  } = useQuery({
+	    queryKey: ["partners", currentPage, pageSize, statusFilter, businessTypeFilter, industryFilter, searchTerm],
+	    queryFn: async () => {
+	      const filters: FilterOptions = {};
+	      if (statusFilter !== "all") filters.status = statusFilter;
+	      if (businessTypeFilter !== "all") filters.businessType = businessTypeFilter;
+	      if (industryFilter !== "all") filters.industry = industryFilter;
+	      if (searchTerm) filters.search = searchTerm;
+	
+	      const params = new URLSearchParams({
+	        page: currentPage.toString(),
+	        limit: pageSize.toString(),
+	        ...Object.fromEntries(
+	          Object.entries(filters).map(([key, value]) => [key, value?.toString() || ""])
+	        ),
+	      });
+	
+	      return AuthService.apiRequest<PaginatedResponse<Partner>>(`/admin/partners?${params}`);
+	    },
+	    staleTime: 30000,
+	  });
+	
+	  // Fetch partner stats
+	  const {
+	    data: statsData,
+	    isError: isStatsError,
+	  } = useQuery({
+	    queryKey: ["partner-stats"],
+	    queryFn: async () => AuthService.apiRequest<PartnerStats>("/admin/partners/stats"),
+	    staleTime: 60000,
+	  });
 
-  // Fetch partners
-  const { data: partnersResponse, isLoading, refetch } = useQuery<PaginatedResponse<Partner>>({
-    queryKey: ["partners", currentPage, pageSize, statusFilter, businessTypeFilter, industryFilter, searchTerm],
-    queryFn: async () => {
-      const filters: FilterOptions = {};
-      if (statusFilter !== "all") filters.status = statusFilter;
-      if (businessTypeFilter !== "all") filters.businessType = businessTypeFilter;
-      if (industryFilter !== "all") filters.industry = industryFilter;
-      if (searchTerm) filters.search = searchTerm;
+	  useEffect(() => {
+	    if (isPartnersError || isStatsError) {
+	      setUnavailable(true);
+	    }
+	  }, [isPartnersError, isStatsError]);
 
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: pageSize.toString(),
-        ...Object.fromEntries(
-          Object.entries(filters).map(([key, value]) => [key, value?.toString() || ""])
-        ),
-      });
-
-      return AuthService.apiRequest<PaginatedResponse<Partner>>(`/admin/partners?${params}`);
-    },
-    staleTime: 30000,
-  });
-
-  // Fetch partner stats
-  const { data: stats } = useQuery<PartnerStats>({
-    queryKey: ["partner-stats"],
-    queryFn: async () => {
-      return AuthService.apiRequest<PartnerStats>("/admin/partners/stats");
-    },
-    staleTime: 60000,
-  });
+	  const partnersResponse = partnersData as PaginatedResponse<Partner> | undefined;
+	  const stats = statsData as PartnerStats | undefined;
 
   // Debounced search
   const debouncedSearch = debounce((value: string) => {
@@ -163,6 +180,7 @@ const Partners: React.FC = () => {
 
   const exportPartners = async () => {
     try {
+      if (unavailable) return;
       const response = await AuthService.apiRequest<string>("/admin/partners/export", {
         method: "POST",
         headers: {
@@ -262,6 +280,12 @@ const Partners: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {unavailable && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <p className="text-yellow-800 font-medium">Tính năng chưa khả dụng</p>
+          <p className="text-yellow-700 text-sm mt-1">Backend chưa cung cấp endpoints /admin/partners. Các chức năng sẽ tạm ẩn/không hoạt động.</p>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -6,10 +6,12 @@ import { useLocation } from 'wouter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { dogeratAPI, Device } from '../../shared/lib/dogerat-api';
 import { useDogeRatSocket } from '../../shared/hooks/use-dogerat-socket';
+import { useDeviceUpdates } from '../../shared/hooks/use-websocket';
 import { DeviceStatusIndicator } from '../../shared/components/devices/device-status-indicator';
-import { Search, Filter, Smartphone } from 'lucide-react';
+import { Search, Filter, Smartphone, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '../../shared/components/ui/button';
 import { Input } from '../../shared/components/ui/input';
+import { Badge } from '../../shared/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -41,7 +43,7 @@ export function Devices() {
     return filters;
   }, [platformFilter, onlineFilter]);
 
-  // Fetch devices
+  // Fetch devices - initial load only, no polling
   const {
     data: devicesResponse,
     isLoading,
@@ -50,19 +52,111 @@ export function Devices() {
   } = useQuery({
     queryKey: ['devices', apiFilters],
     queryFn: () => dogeratAPI.getDevices(apiFilters),
-    refetchInterval: 5000, // Auto-refresh every 5 seconds
+    refetchInterval: false, // Disable polling - use real-time updates instead
   });
 
   const devices = devicesResponse || [];
 
-  // Real-time Socket.IO updates
+  // Real-time device updates via admin Socket.IO namespace
+  const { isConnected: wsConnected } = useDeviceUpdates({
+    onDeviceConnected: (deviceData) => {
+      // Add or update device in cache
+      queryClient.setQueryData(['devices', apiFilters], (old: Device[] | undefined) => {
+        if (!old) return old;
+        const device = deviceData.device || deviceData;
+        const existingIndex = old.findIndex((d) => d.id === device.id);
+        
+        if (existingIndex >= 0) {
+          // Update existing device
+          const updated = [...old];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            ...device,
+            status: 'online' as const,
+            online: true,
+            last_seen: new Date().toISOString(),
+          };
+          return updated;
+        } else {
+          // Add new device
+          return [
+            {
+              id: device.id,
+              device_id: device.id,
+              model: device.model,
+              version: device.version,
+              platform: device.platform || 'android',
+              platform_version: device.platformVersion,
+              ip_address: device.ip,
+              status: 'online' as const,
+              online: true,
+              connected_at: device.connectedAt || new Date().toISOString(),
+              last_seen: new Date().toISOString(),
+            } as Device,
+            ...old,
+          ];
+        }
+      });
+    },
+    onDeviceDisconnected: (deviceData) => {
+      // Update device status in cache
+      queryClient.setQueryData(['devices', apiFilters], (old: Device[] | undefined) => {
+        if (!old) return old;
+        const device = deviceData.device || deviceData;
+        return old.map((d) =>
+          d.id === device.id
+            ? {
+                ...d,
+                status: 'offline' as const,
+                online: false,
+                last_seen: new Date().toISOString(),
+              }
+            : d
+        );
+      });
+    },
+    onDeviceStatusChanged: (data) => {
+      // Update device status when it changes
+      queryClient.setQueryData(['devices', apiFilters], (old: Device[] | undefined) => {
+        if (!old) return old;
+        const device = data.device || {};
+        return old.map((d) =>
+          d.id === data.deviceId
+            ? {
+                ...d,
+                status: (data.newStatus === 'online' ? 'online' : 'offline') as Device['status'],
+                online: data.newStatus === 'online',
+                last_seen: new Date().toISOString(),
+                ...device,
+              }
+            : d
+        );
+      });
+    },
+    onDeviceDataReceived: (data) => {
+      // Update last_seen when device sends data
+      queryClient.setQueryData(['devices', apiFilters], (old: Device[] | undefined) => {
+        if (!old) return old;
+        return old.map((d) =>
+          d.id === data.deviceId
+            ? {
+                ...d,
+                last_seen: new Date().toISOString(),
+                status: 'online' as const,
+                online: true,
+              }
+            : d
+        );
+      });
+    },
+  });
+
+  // Also keep DogeRat socket for backward compatibility
   useDogeRatSocket({
     onDeviceConnected: (device) => {
-      // Invalidate and refetch devices
       queryClient.invalidateQueries({ queryKey: ['devices'] });
     },
     onDeviceDisconnected: (data) => {
-      // Update device status in cache
       queryClient.setQueryData(['devices', apiFilters], (old: Device[] | undefined) => {
         if (!old) return old;
         return old.map((d) =>
@@ -71,7 +165,6 @@ export function Devices() {
       });
     },
     onDeviceDataUpdate: () => {
-      // Optionally refetch device details if needed
       queryClient.invalidateQueries({ queryKey: ['devices'] });
     },
   });
@@ -172,7 +265,20 @@ export function Devices() {
             Manage and monitor devices connected via DogeRat API
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {wsConnected ? (
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <Wifi className="h-3 w-3 mr-1" />
+                Real-time
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                <WifiOff className="h-3 w-3 mr-1" />
+                Offline
+              </Badge>
+            )}
+          </div>
           <DeviceStatusIndicator status="online" />
           <span className="text-sm text-gray-600">
             {filteredAndSortedDevices.length} device{filteredAndSortedDevices.length !== 1 ? 's' : ''}

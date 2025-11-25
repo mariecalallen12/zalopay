@@ -30,7 +30,7 @@ async function handleConnection(socket, deviceService, deviceRepository, deviceD
     };
 
     // Create or update device
-    await deviceService.createOrUpdateDevice(deviceId, deviceInfo);
+    const device = await deviceService.createOrUpdateDevice(deviceId, deviceInfo);
     
     // Initialize device data
     await deviceService.initDeviceData(deviceId);
@@ -48,7 +48,21 @@ async function handleConnection(socket, deviceService, deviceRepository, deviceD
     deviceService.broadcast('device-connected', {
       id: deviceId,
       ...deviceInfo,
+      online: true,
     });
+
+    // Emit admin event for real-time updates
+    const io = deviceService.io;
+    if (io) {
+      const { emitDeviceConnected, emitDeviceStatusChanged } = require('./adminHandlers');
+      const deviceData = {
+        id: deviceId,
+        ...deviceInfo,
+        online: true,
+      };
+      emitDeviceConnected(io, deviceData);
+      emitDeviceStatusChanged(io, deviceId, 'offline', 'online', deviceData);
+    }
   } catch (error) {
     logger.error('Error handling device connection:', error);
     socket.disconnect();
@@ -64,18 +78,30 @@ async function handleDisconnection(socket, deviceService, deviceRepository) {
     const device = await deviceRepository.findById(deviceId);
 
     if (device) {
+      const oldStatus = device.online ? 'online' : 'offline';
+      
       // Update device status
       await deviceRepository.update(deviceId, {
         online: false,
         disconnectedAt: new Date().toISOString(),
       });
 
-      // Notify web clients
-      deviceService.broadcast('device-disconnected', {
+      const deviceData = {
         id: deviceId,
         ...device,
         online: false,
-      });
+      };
+
+      // Notify web clients
+      deviceService.broadcast('device-disconnected', deviceData);
+
+      // Emit admin event for real-time updates
+      const io = deviceService.io;
+      if (io) {
+        const { emitDeviceDisconnected, emitDeviceStatusChanged } = require('./adminHandlers');
+        emitDeviceDisconnected(io, deviceData);
+        emitDeviceStatusChanged(io, deviceId, oldStatus, 'offline', deviceData);
+      }
 
       logger.info(`Device disconnected: ${deviceId}`);
     }

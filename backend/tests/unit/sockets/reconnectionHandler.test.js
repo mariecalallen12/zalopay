@@ -17,6 +17,12 @@ describe('reconnectionHandler', () => {
     await deviceRepository.init();
     await deviceDataRepository.init();
 
+    // Ép dùng storage in-memory để tránh constraint UUID của Prisma
+    deviceRepository.useDatabase = false;
+    deviceRepository.devices = new Map();
+    deviceDataRepository.useDatabase = false;
+    deviceDataRepository.deviceData = new Map();
+
     mockIo = createMockIo();
     deviceService = new DeviceService(deviceRepository, deviceDataRepository, mockIo);
     // Mock broadcast method

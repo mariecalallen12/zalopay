@@ -6,6 +6,8 @@ const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
 const config = require('../config');
 
+const FORCE_IN_MEMORY = process.env.TEST_FORCE_IN_MEMORY === 'true';
+
 class DeviceRepository {
   constructor(prismaClient) {
     this.prisma = prismaClient || new PrismaClient();
@@ -17,6 +19,13 @@ class DeviceRepository {
    * Initialize database connection
    */
   async init() {
+    if (FORCE_IN_MEMORY) {
+      this.devices = new Map();
+      this.useDatabase = false;
+      logger.info('DeviceRepository: Forced in-memory mode via TEST_FORCE_IN_MEMORY');
+      return;
+    }
+
     try {
       await this.prisma.$queryRaw`SELECT 1`;
       this.useDatabase = true;

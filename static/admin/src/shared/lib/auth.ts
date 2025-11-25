@@ -9,7 +9,7 @@ export class AuthService {
    * Login with username and password
    */
   static async login(username: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/admin/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +72,7 @@ export class AuthService {
       throw new Error("No authentication token");
     }
 
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    const response = await fetch(`${API_BASE_URL}/admin/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -65,7 +65,6 @@ async function loadReportData() {
     try {
         showLoading();
 
-        // Simulate API call - replace with actual API endpoint
         const data = await fetchReportData();
         reportData = data;
 
@@ -82,7 +81,6 @@ async function loadReportData() {
 }
 
 async function fetchReportData() {
-    // API call - replace with actual endpoint
     try {
         const days = getDaysFromPeriod(currentPeriod);
         const startDate = document.getElementById('reportStartDate')?.value || '';
@@ -154,10 +152,6 @@ function getDaysFromPeriod(period) {
     }
 }
 
-function generateSampleData(days) {
-    // This function is deprecated - use generateEmptyData instead
-    return generateEmptyData(days);
-}
 
 function calculateComparison(current, previous) {
     const totalRevenue = current.revenue.reduce((a, b) => a + b, 0);

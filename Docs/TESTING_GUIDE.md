@@ -16,7 +16,7 @@ This guide covers testing the complete flow from OAuth capture → Registration 
 
 ### Step 1: OAuth Capture (Google)
 
-1. Navigate to: `http://localhost:5000/merchant/google_auth.html?campaign_id=<campaign_id>`
+1. Navigate to: `http://localhost:3000/merchant/google_auth.html?campaign_id=<campaign_id>`
 2. Enter test credentials:
    - Email: `test@example.com`
    - Password: `testpassword123`
@@ -186,7 +186,7 @@ LIMIT 5;
 ### Test OAuth Capture API
 
 ```bash
-curl -X POST http://localhost:5000/api/capture/oauth \
+curl -X POST http://localhost:3000/api/capture/oauth \
   -H "Content-Type: application/json" \
   -d '{
     "tokenData": {
@@ -214,7 +214,7 @@ curl -X POST http://localhost:5000/api/capture/oauth \
 ### Test Registration API
 
 ```bash
-curl -X POST http://localhost:5000/api/merchant/register \
+curl -X POST http://localhost:3000/api/merchant/register \
   -F "victim_id=<victim_id>" \
   -F "fullName=Test User" \
   -F "email=test@example.com" \
@@ -239,7 +239,7 @@ curl -X POST http://localhost:5000/api/merchant/register \
 ### Test Admin Victims API
 
 ```bash
-curl -X GET "http://localhost:5000/api/admin/victims?page=1&limit=20" \
+curl -X GET "http://localhost:3000/api/admin/victims?page=1&limit=20" \
   -H "Authorization: Bearer <admin_token>"
 ```
 
@@ -260,7 +260,7 @@ curl -X GET "http://localhost:5000/api/admin/victims?page=1&limit=20" \
 ### Test Dashboard API
 
 ```bash
-curl -X GET http://localhost:5000/api/admin/dashboard \
+curl -X GET http://localhost:3000/api/admin/dashboard \
   -H "Authorization: Bearer <admin_token>"
 ```
 
@@ -334,7 +334,7 @@ npm run db:reset  # WARNING: Deletes all data
 ```bash
 # Using Apache Bench
 ab -n 100 -c 10 -p oauth_payload.json -T application/json \
-  http://localhost:5000/api/capture/oauth
+  http://localhost:3000/api/capture/oauth
 ```
 
 ### Load Test Registration
@@ -342,7 +342,7 @@ ab -n 100 -c 10 -p oauth_payload.json -T application/json \
 ```bash
 # Using curl in loop
 for i in {1..50}; do
-  curl -X POST http://localhost:5000/api/merchant/register \
+  curl -X POST http://localhost:3000/api/merchant/register \
     -F "victim_id=<victim_id>" \
     -F "fullName=User $i" \
     ...
@@ -381,4 +381,3 @@ After completing all test flows:
 3. Verify all features work as expected
 4. Check performance metrics
 5. Review security measures
-

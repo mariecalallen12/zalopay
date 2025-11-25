@@ -1,0 +1,60 @@
+---
+# Ansible playbook skeleton to deploy ZaloPay native (Ubuntu 20.04+)
+# Usage: ansible-playbook -i hosts playbook.yml --extra-vars "repo_path=/opt/zalopay deploy_user=ubuntu"
+
+- hosts: zalopay_servers
+  become: true
+  vars:
+    repo_path: /opt/zalopay
+    deploy_user: ubuntu
+    node_version: 20
+    postgres_user: zalopay
+    postgres_db: zalopay
+
+  tasks:
+    - name: Ensure apt cache is up to date
+      apt:
+        update_cache: yes
+
+    - name: Install system packages
+      apt:
+        name:
+          - curl
+          - git
+          - build-essential
+          - nginx
+          - postgresql
+          - postgresql-contrib
+          - ca-certificates
+        state: present
+
+    - name: Install Node.js (Nodesource)
+      shell: curl -fsSL https://deb.nodesource.com/setup_{{ node_version }}.x | bash -
+      args:
+        executable: /bin/bash
+
+    - name: Install nodejs
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Install pm2 globally
+      npm:
+        name: pm2
+        global: yes
+
+    - name: Create postgres DB and user
+      become_user: postgres
+      postgresql_db:
+        name: "{{ postgres_db }}"
+        state: present
+
+    - name: Ensure repo directory exists
+      file:
+        path: "{{ repo_path }}"
+        state: directory
+        owner: "{{ deploy_user }}"
+
+    - name: Stop here - manual steps required
+      debug:
+        msg: "Playbook sets up system packages. Continue with copy of repo, environment variables, npm install, prisma migrate, pm2 start as deploy user."

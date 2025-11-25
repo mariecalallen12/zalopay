@@ -620,14 +620,27 @@ body {
 
 /* Mastercard logo căn giữa ở hàng cuối */
 .partner-item-center {
-  grid-column: 3 / 4; /* Căn giữa ở cột thứ 3 (giữa 5 cột) */
-  justify-self: center; /* Đảm bảo căn giữa hoàn hảo */
+  grid-column: 2 / 5; /* Span 3 cột (2, 3, 4) để căn giữa trong 5 cột */
+  justify-self: center; /* Căn giữa nội dung trong span */
+  display: flex !important; /* Đảm bảo flex để căn giữa */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  justify-content: center; /* Căn giữa theo chiều ngang */
+}
+
+/* Đảm bảo ảnh trong partner-item-center hiển thị đúng */
+.partner-item-center .partner-logo-img {
+  max-height: 56px !important;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block !important;
 }
 
 /* Responsive: trên màn hình nhỏ, Mastercard vẫn căn giữa */
 @media (max-width: 1200px) {
   .partner-item-center {
-    grid-column: 2 / 3; /* Căn giữa trong grid 4 cột */
+    grid-column: 2 / 4; /* Căn giữa trong grid 4 cột */
   }
 }
 
@@ -639,7 +652,8 @@ body {
 
 @media (max-width: 768px) {
   .partner-item-center {
-    grid-column: 1 / 3; /* Căn giữa trong grid 2 cột */
+    grid-column: 1 / 3; /* Span 2 cột để căn giữa trong grid 2 cột */
+    justify-self: center;
   }
 }
 

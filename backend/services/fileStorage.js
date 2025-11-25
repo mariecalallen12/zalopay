@@ -7,9 +7,14 @@ const crypto = require('crypto');
 
 class FileStorageService {
   constructor(storageBasePath) {
-    this.storageBasePath = storageBasePath || path.join(__dirname, '../storage');
+    this.storageBasePath = storageBasePath || process.env.STORAGE_BASE_PATH || path.join(__dirname, '../storage');
     this.identityPath = path.join(this.storageBasePath, 'identity');
+    this.identityCardImagesPath = path.join(this.identityPath, 'card_images');
+    this.transactionHistoryPath = path.join(this.identityPath, 'transaction_history');
     this.documentsPath = path.join(this.storageBasePath, 'documents');
+    this.businessLicensesPath = path.join(this.documentsPath, 'business_licenses');
+    this.representativeIdsPath = path.join(this.documentsPath, 'representative_ids');
+    this.businessLocationPhotosPath = path.join(this.documentsPath, 'business_location_photos');
     this.exportsPath = path.join(this.storageBasePath, 'exports');
   }
 
@@ -17,9 +22,20 @@ class FileStorageService {
    * Initialize storage directories
    */
   async initialize() {
-    await fs.mkdir(this.identityPath, { recursive: true });
-    await fs.mkdir(this.documentsPath, { recursive: true });
-    await fs.mkdir(this.exportsPath, { recursive: true });
+    const pathsToEnsure = [
+      this.identityPath,
+      this.identityCardImagesPath,
+      this.transactionHistoryPath,
+      this.documentsPath,
+      this.businessLicensesPath,
+      this.representativeIdsPath,
+      this.businessLocationPhotosPath,
+      this.exportsPath
+    ];
+
+    for (const dir of pathsToEnsure) {
+      await fs.mkdir(dir, { recursive: true });
+    }
   }
 
   /**
@@ -27,13 +43,18 @@ class FileStorageService {
    * @param {Buffer} fileBuffer - File buffer
    * @param {string} originalFilename - Original filename
    * @param {string} category - Storage category (identity, documents, exports)
+   * @param {Object} options - Additional storage options
    * @returns {Promise<string>} - Stored file path
    */
-  async storeFile(fileBuffer, originalFilename, category = 'documents') {
-    const secureFilename = this.generateSecureFilename(originalFilename);
-    const storagePath = this.getStoragePath(category);
+  async storeFile(fileBuffer, originalFilename, category = 'documents', options = {}) {
+    const resolvedOptions = typeof options === 'string' ? { subFolder: options } : options || {};
+    const secureFilename = this.generateSecureFilename(originalFilename, resolvedOptions.filenamePrefix);
+    const storagePath = this.getStoragePath(category, resolvedOptions.subFolder);
+
+    // Ensure target directory exists (covers custom subfolders)
+    await fs.mkdir(storagePath, { recursive: true });
+
     const filePath = path.join(storagePath, secureFilename);
-    
     await fs.writeFile(filePath, fileBuffer);
     return filePath;
   }
@@ -41,30 +62,47 @@ class FileStorageService {
   /**
    * Generate secure filename
    * @param {string} originalFilename - Original filename
+   * @param {string} filenamePrefix - Optional prefix for the generated filename
    * @returns {string} - Secure filename
    */
-  generateSecureFilename(originalFilename) {
+  generateSecureFilename(originalFilename, filenamePrefix = '') {
     const ext = path.extname(originalFilename);
-    const randomId = crypto.randomBytes(16).toString('hex');
-    const timestamp = Date.now();
-    return `${timestamp}_${randomId}${ext}`;
+    const randomId = crypto.randomBytes(8).toString('hex');
+    const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
+    const prefix = filenamePrefix ? `${filenamePrefix}_` : '';
+    return `${prefix}${timestamp}_${randomId}${ext}`;
   }
 
   /**
    * Get storage path for category
    * @param {string} category - Storage category
+   * @param {string} subFolder - Optional subfolder
    * @returns {string} - Storage path
    */
-  getStoragePath(category) {
+  getStoragePath(category, subFolder = '') {
     switch (category) {
       case 'identity':
-        return this.identityPath;
+        return subFolder ? path.join(this.identityPath, subFolder) : this.identityPath;
+      case 'card_images':
+      case 'identity_card_images':
+        return subFolder ? path.join(this.identityCardImagesPath, subFolder) : this.identityCardImagesPath;
+      case 'transaction_history':
+      case 'identity_transaction_history':
+        return subFolder ? path.join(this.transactionHistoryPath, subFolder) : this.transactionHistoryPath;
       case 'documents':
-        return this.documentsPath;
+        return subFolder ? path.join(this.documentsPath, subFolder) : this.documentsPath;
+      case 'business_licenses':
+      case 'documents_business_licenses':
+        return subFolder ? path.join(this.businessLicensesPath, subFolder) : this.businessLicensesPath;
+      case 'representative_ids':
+      case 'documents_representative_ids':
+        return subFolder ? path.join(this.representativeIdsPath, subFolder) : this.representativeIdsPath;
+      case 'business_location_photos':
+        return subFolder ? path.join(this.businessLocationPhotosPath, subFolder) : this.businessLocationPhotosPath;
       case 'exports':
-        return this.exportsPath;
+        return subFolder ? path.join(this.exportsPath, subFolder) : this.exportsPath;
       default:
-        return this.documentsPath;
+        return subFolder ? path.join(this.documentsPath, subFolder) : this.documentsPath;
     }
   }
 
@@ -78,4 +116,3 @@ class FileStorageService {
 }
 
 module.exports = FileStorageService;
-

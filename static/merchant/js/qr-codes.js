@@ -33,7 +33,6 @@ async function loadQRCodes() {
     try {
         showLoading();
 
-        // Simulate API call - replace with actual API endpoint
         const response = await fetchQRCodes();
         qrCodes = response.qrCodes;
 
@@ -47,7 +46,6 @@ async function loadQRCodes() {
 }
 
 async function fetchQRCodes() {
-    // API call - replace with actual endpoint
     try {
         const response = await fetch('/api/merchant/qr-codes');
         if (!response.ok) throw new Error('Failed to fetch QR codes');
@@ -162,7 +160,6 @@ function handleCreateQR(event) {
         return;
     }
 
-    // Simulate API call to create QR code
     createQRCode(formData).then(() => {
         // Close modal and reset form
         bootstrap.Modal.getInstance(document.getElementById('createQRModal')).hide();
@@ -179,25 +176,26 @@ function handleCreateQR(event) {
 }
 
 async function createQRCode(data) {
-    // Simulate API call
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            // Simulate random success/failure
-            if (Math.random() > 0.1) { // 90% success rate
-                resolve({
-                    id: 'QR' + String(100 + qrCodes.length + 1).slice(1),
-                    ...data,
-                    status: 'active',
-                    createdAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                    totalTransactions: 0,
-                    totalAmount: 0,
-                    qrData: `https://zalopay.vn/pay?merchant=DEMO001&name=${encodeURIComponent(data.name)}${data.amount ? `&amount=${data.amount}` : ''}`
-                });
-            } else {
-                reject(new Error('API Error'));
-            }
-        }, 1500);
-    });
+    try {
+        const response = await fetch('/api/merchant/qr-codes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create QR code');
+        }
+
+        const result = await response.json();
+        return result.qrCode || result;
+    } catch (error) {
+        console.error('Error creating QR code:', error);
+        throw error;
+    }
 }
 
 function viewQRDetail(qrId) {
@@ -376,27 +374,48 @@ function downloadQR(qrId) {
     showSuccess('QR code đã được tải xuống!');
 }
 
-function toggleQRStatus(qrId) {
+async function toggleQRStatus(qrId) {
     const qr = qrCodes.find(q => q.id === qrId);
     if (!qr) return;
 
     const newStatus = qr.status === 'active' ? 'inactive' : 'active';
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+        const response = await fetch(`/api/merchant/qr-codes/${qrId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update QR code status');
+        }
+
         qr.status = newStatus;
         renderQRCodes();
         showSuccess(`QR code đã được ${newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hóa'}`);
-    }, 500);
+    } catch (error) {
+        console.error('Error toggling QR status:', error);
+        showError('Không thể cập nhật trạng thái QR code');
+    }
 }
 
-function deleteQR(qrId) {
+async function deleteQR(qrId) {
     if (!confirm('Bạn có chắc chắn muốn xóa QR code này? Hành động này không thể hoàn tác.')) {
         return;
     }
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+        const response = await fetch(`/api/merchant/qr-codes/${qrId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete QR code');
+        }
+
         qrCodes = qrCodes.filter(q => q.id !== qrId);
         renderQRCodes();
         showSuccess('QR code đã được xóa');
@@ -404,7 +423,10 @@ function deleteQR(qrId) {
         // Close modal if it's open
         const modal = bootstrap.Modal.getInstance(document.getElementById('qrDetailModal'));
         if (modal) modal.hide();
-    }, 500);
+    } catch (error) {
+        console.error('Error deleting QR code:', error);
+        showError('Không thể xóa QR code');
+    }
 }
 
 function editQR() {

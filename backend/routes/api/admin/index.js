@@ -14,6 +14,7 @@ const activityRoutes = require('./activity');
 const dashboardRoutes = require('./dashboard');
 const transactionsRoutes = require('./transactions');
 const verificationsRoutes = require('./verifications');
+const notificationsRoutes = require('./notifications');
 
 // Auth routes - login and MFA don't require authentication
 // But permissions and sessions do require auth
@@ -30,6 +31,7 @@ router.use('/activity-logs', activityRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/transactions', transactionsRoutes);
 router.use('/verifications', verificationsRoutes);
+router.use('/notifications', notificationsRoutes);
 
 module.exports = router;
 

@@ -50,13 +50,11 @@ Quick start guide featuring:
 ### 3. DevContainer Configuration
 
 **devcontainer.json features:**
-- 🐳 Docker-in-Docker support
 - 📦 Node.js 18 base image
-- 🔧 Pre-installed VS Code extensions:
+- 🔧 Pre-installed VS Code extensions (select):
   - Prisma
   - ESLint
   - GitLens
-  - Docker
   - And more...
 - 🌐 Port forwarding (3000, 5433, 8081)
 - 🚀 Post-create command automation
@@ -121,7 +119,7 @@ Use: `https://codespaces.new/mariecalallen12/zalopay?quickstart=1`
 | Method | Setup Time | Complexity |
 |--------|------------|------------|
 | **Codespaces** | **5 minutes** | **Easy** ✅ |
-| Docker Compose | 15-20 minutes | Medium |
+| Legacy Docker Compose (optional) | 15-20 minutes | Medium |
 | Local Setup | 30-60 minutes | Complex |
 
 ## 🔒 Security Features
@@ -138,13 +136,13 @@ Use: `https://codespaces.new/mariecalallen12/zalopay?quickstart=1`
 2. **Commit Often**: Changes are local until pushed
 3. **Use Branches**: Keep main branch clean
 4. **Monitor Quota**: Check GitHub billing settings
-5. **Clean Up**: `docker system prune` to free space
+5. **Clean Up**: remove temporary files or workspace caches to free space
 
 ## 📚 Additional Resources
 
 - [GitHub Codespaces Docs](https://docs.github.com/en/codespaces)
 - [Dev Containers Spec](https://containers.dev/)
-- [Docker-in-Docker Feature](https://github.com/devcontainers/features/tree/main/src/docker-in-docker)
+ 
 
 ## 🤝 Contributing
 

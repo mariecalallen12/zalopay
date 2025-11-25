@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AuthService } from "@/shared/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -76,23 +76,38 @@ interface ReportData {
 const AdvancedReports: React.FC = () => {
   const [timeRange, setTimeRange] = useState("30d");
   const [reportType, setReportType] = useState("overview");
-  const { toast } = useToast();
+  const [unavailable, setUnavailable] = useState(false);
+	  const { toast } = useToast();
+	
+	  const {
+	    data,
+	    isLoading,
+	    isError,
+	    refetch,
+	  } = useQuery({
+	    queryKey: ["advanced-reports", timeRange, reportType],
+	    queryFn: async () => {
+	      const params = new URLSearchParams({
+	        timeRange,
+	        type: reportType,
+	      });
+	
+	      return AuthService.apiRequest<ReportData>(`/admin/reports/advanced?${params}`);
+	    },
+	    staleTime: 300000, // 5 minutes
+	  });
 
-  const { data: reportData, isLoading, refetch } = useQuery<ReportData>({
-    queryKey: ["advanced-reports", timeRange, reportType],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        timeRange,
-        type: reportType,
-      });
+	  useEffect(() => {
+	    if (isError) {
+	      setUnavailable(true);
+	    }
+	  }, [isError]);
 
-      return AuthService.apiRequest<ReportData>(`/admin/reports/advanced?${params}`);
-    },
-    staleTime: 300000, // 5 minutes
-  });
+	  const reportData = data as ReportData | undefined;
 
   const exportReport = async (format: 'pdf' | 'excel' | 'csv' = 'excel') => {
     try {
+      if (unavailable) return;
       const response = await AuthService.apiRequest<string>("/admin/reports/export", {
         method: "POST",
         headers: {
@@ -159,6 +174,12 @@ const AdvancedReports: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {unavailable && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <p className="text-yellow-800 font-medium">Báo cáo nâng cao chưa khả dụng</p>
+          <p className="text-yellow-700 text-sm mt-1">Backend chưa cung cấp các endpoints /admin/reports/advanced và /admin/reports/export. Các nút xuất báo cáo đã bị vô hiệu hoá.</p>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -172,11 +193,11 @@ const AdvancedReports: React.FC = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Làm mới
           </Button>
-          <Button onClick={() => exportReport('excel')} variant="outline" size="sm">
+          <Button onClick={() => exportReport('excel')} variant="outline" size="sm" disabled={unavailable} aria-disabled={unavailable}>
             <Download className="h-4 w-4 mr-2" />
             Xuất Excel
           </Button>
-          <Button onClick={() => exportReport('pdf')} variant="outline" size="sm">
+          <Button onClick={() => exportReport('pdf')} variant="outline" size="sm" disabled={unavailable} aria-disabled={unavailable}>
             <Download className="h-4 w-4 mr-2" />
             Xuất PDF
           </Button>

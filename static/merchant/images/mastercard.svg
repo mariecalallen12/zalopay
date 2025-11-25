@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 152 96" width="152" height="96">
+  <!-- Mastercard Logo - Two overlapping circles -->
+  <defs>
+    <style>
+      .red-circle { fill: #EB001B; }
+      .orange-circle { fill: #F79E1B; }
+    </style>
+  </defs>
+  <!-- Red circle -->
+  <circle class="red-circle" cx="38" cy="48" r="30"/>
+  <!-- Orange/Yellow circle -->
+  <circle class="orange-circle" cx="114" cy="48" r="30"/>
+  <!-- Overlapping intersection area (darker orange) -->
+  <path d="M 38 18 A 30 30 0 0 1 68 18 A 60 60 0 0 1 114 48 A 60 60 0 0 1 68 78 A 30 30 0 0 1 38 78 A 30 30 0 0 1 38 18 Z" fill="#FF5F00"/>
+</svg>

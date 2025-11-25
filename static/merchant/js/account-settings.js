@@ -18,7 +18,6 @@ function initializeSettingsPage() {
 
 async function loadSettings() {
     try {
-        // Simulate API call to load user settings
         const settings = await fetchUserSettings();
         currentSettings = settings;
 
@@ -36,7 +35,6 @@ async function loadSettings() {
 }
 
 async function fetchUserSettings() {
-    // API call - replace with actual endpoint
     try {
         const response = await fetch('/api/merchant/account/settings');
         if (!response.ok) throw new Error('Failed to fetch settings');
@@ -325,55 +323,74 @@ async function handleNotificationsUpdate(event) {
 }
 
 async function updateProfile(data) {
-    // Simulate API call
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (Math.random() > 0.1) {
-                resolve();
-            } else {
-                reject(new Error('API Error'));
-            }
-        }, 1000);
+    const response = await fetch('/api/merchant/account/profile', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+            }
+
+    return await response.json();
 }
 
 async function updateBusiness(data) {
-    // Simulate API call
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (Math.random() > 0.1) {
-                resolve();
-            } else {
-                reject(new Error('API Error'));
-            }
-        }, 1000);
+    const response = await fetch('/api/merchant/account/business', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update business');
+            }
+
+    return await response.json();
 }
 
 async function changePassword(current, newPassword) {
-    // Simulate API call
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (Math.random() > 0.1) {
-                resolve();
-            } else {
-                reject(new Error('API Error'));
-            }
-        }, 1000);
+    const response = await fetch('/api/merchant/account/password', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            currentPassword: current,
+            newPassword: newPassword
+        })
     });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to change password');
+            }
+
+    return await response.json();
 }
 
 async function updateNotifications(data) {
-    // Simulate API call
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (Math.random() > 0.1) {
-                resolve();
-            } else {
-                reject(new Error('API Error'));
-            }
-        }, 1000);
+    const response = await fetch('/api/merchant/account/notifications', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update notifications');
+            }
+
+    return await response.json();
 }
 
 function addBankAccount() {

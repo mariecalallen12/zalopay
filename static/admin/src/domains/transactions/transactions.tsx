@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { AuthService } from '../../shared/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '../../shared/components/ui/card';
 import { Button } from '../../shared/components/ui/button';
 import { Input } from '../../shared/components/ui/input';
@@ -74,11 +75,6 @@ export default function Transactions() {
 
   const fetchTransactions = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token');
-      }
-
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
@@ -89,26 +85,15 @@ export default function Transactions() {
         ...(dateTo && { date_to: dateTo })
       });
 
-      const [transactionsResponse, statsResponse] = await Promise.all([
-        fetch(`/api/admin/transactions?${params}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('/api/admin/transactions/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+      const [transactionsData, statsData] = await Promise.all([
+        AuthService.apiRequest<{ items: Transaction[]; total: number; pages: number }>(`/admin/transactions?${params.toString()}`),
+        AuthService.apiRequest<{ success: boolean; data: any }>(`/admin/transactions/stats`).then((d) => d?.data ?? d)
       ]);
-
-      if (!transactionsResponse.ok || !statsResponse.ok) {
-        throw new Error('Failed to fetch transactions');
-      }
-
-      const transactionsData = await transactionsResponse.json();
-      const statsData = await statsResponse.json();
 
       setTransactions(transactionsData.items || []);
       setTotalPages(transactionsData.pages || 1);
       setTotalItems(transactionsData.total || 0);
-      setStats(statsData);
+      setStats(statsData as any);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -138,7 +123,7 @@ export default function Transactions() {
 
   const handleExport = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = AuthService.getToken();
       const params = new URLSearchParams({
         ...(search && { search }),
         ...(statusFilter && { status: statusFilter }),
@@ -148,7 +133,7 @@ export default function Transactions() {
         format: 'csv'
       });
 
-      const response = await fetch(`/api/admin/transactions/export?${params}`, {
+      const response = await fetch(`/api/admin/transactions/export?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

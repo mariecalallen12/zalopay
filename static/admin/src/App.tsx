@@ -4,6 +4,7 @@ import { Route, Switch, Router, useLocation } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from './shared/components/ui/toaster';
 import { AuthService } from './shared/lib/auth';
+import { registerPush } from './shared/lib/push';
 import { MFAInput } from './shared/components/auth/mfa-input';
 
 // Import pages
@@ -65,6 +66,8 @@ const Login: React.FC = () => {
         localStorage.setItem('zalopay_admin_token', data.token);
         localStorage.setItem('zalopay_admin_user', JSON.stringify(data.user));
         setLocation('/');
+        // attempt to register push after successful login
+        registerPush();
       } else {
         // Initial login
         const response = await fetch('/api/admin/auth/login', {
@@ -86,6 +89,7 @@ const Login: React.FC = () => {
         localStorage.setItem('zalopay_admin_token', data.token);
         localStorage.setItem('zalopay_admin_user', JSON.stringify(data.user));
         setLocation('/');
+        registerPush();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Lỗi đăng nhập. Vui lòng thử lại.');

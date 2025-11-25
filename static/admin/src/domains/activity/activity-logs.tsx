@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/shared/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -35,6 +35,8 @@ import {
   CheckCircle2,
   XCircle,
   Info,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { AuditLog, PaginatedResponse, FilterOptions } from "@/shared/types";
 import {
@@ -42,7 +44,7 @@ import {
   formatRelativeTime,
   debounce,
 } from "@/shared/lib/utils";
-import { useWebSocket } from "@/shared/hooks/use-websocket";
+import { useActivityUpdates } from "@/shared/hooks/use-websocket";
 
 interface ActivityAnalytics {
   total_activities?: number;
@@ -66,19 +68,84 @@ export default function ActivityLogs() {
     per_page: 50,
   });
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [realTimeLogs, setRealTimeLogs] = useState<AuditLog[]>([]);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const wasAtBottomRef = useRef(true);
+
+  // Check if user is at bottom of scroll
+  const checkScrollPosition = () => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      wasAtBottomRef.current = scrollTop + clientHeight >= scrollHeight - 50;
+    }
+  };
+
+  // Auto-scroll to bottom if user was at bottom
+  useEffect(() => {
+    if (autoScroll && wasAtBottomRef.current && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [realTimeLogs, autoScroll]);
 
   // Real-time updates via WebSocket
-  useWebSocket({
-    type: 'activity',
-    enabled: true,
-    onMessage: (message) => {
-      if (message.type === 'activity:new') {
-        queryClient.invalidateQueries({ queryKey: ['activity-logs'] });
-        toast({
-          title: "New Activity",
-          description: message.data.actionType || "New activity logged",
-        });
-      }
+  const { isConnected: wsConnected } = useActivityUpdates({
+    onActivityLogCreated: (logData) => {
+      // Convert log data to AuditLog format
+      const newLog: AuditLog = {
+        id: logData.id || logData.logId || `log-${Date.now()}`,
+        action: logData.actionType || 'unknown',
+        details: JSON.stringify(logData.actionDetails || {}),
+        user_id: logData.adminId || logData.actor?.identifier || 0,
+        created_at: logData.timestamp || logData.technicalContext?.timestamp || new Date().toISOString(),
+        resource_type: logData.actionCategory || 'system',
+        actionType: logData.actionType,
+        actionCategory: logData.actionCategory,
+        severityLevel: logData.severityLevel,
+        actor: logData.actor,
+        target: logData.target,
+        actionDetails: logData.actionDetails,
+        technicalContext: logData.technicalContext,
+      };
+
+      // Add to real-time logs (prepend for newest first)
+      setRealTimeLogs((prev) => {
+        // Avoid duplicates
+        if (prev.some((l) => l.id === newLog.id)) {
+          return prev;
+        }
+        return [newLog, ...prev].slice(0, 100); // Keep last 100 real-time logs
+      });
+
+      // Show toast notification
+      toast({
+        title: "New Activity",
+        description: logData.actionType || "New activity logged",
+      });
+
+      // Invalidate query to refresh analytics
+      queryClient.invalidateQueries({ queryKey: ['activity-analytics'] });
+    },
+    onActivityNew: (activityData) => {
+      // Handle generic activity events
+      const newLog: AuditLog = {
+        id: activityData.id || `activity-${Date.now()}`,
+        action: activityData.actionType || 'unknown',
+        details: JSON.stringify(activityData.actionDetails || {}),
+        user_id: activityData.adminId || 0,
+        created_at: activityData.timestamp || new Date().toISOString(),
+        resource_type: activityData.actionCategory || 'system',
+        actionType: activityData.actionType,
+        actionCategory: activityData.actionCategory,
+        severityLevel: activityData.severityLevel,
+      };
+
+      setRealTimeLogs((prev) => {
+        if (prev.some((l) => l.id === newLog.id)) {
+          return prev;
+        }
+        return [newLog, ...prev].slice(0, 100);
+      });
     },
   });
 
@@ -89,9 +156,27 @@ export default function ActivityLogs() {
       Object.entries({ ...filters, search: searchTerm }).forEach(([key, value]) => {
         if (value) params.append(key, value.toString());
       });
-      return AuthService.apiRequest<PaginatedResponse<AuditLog>>(`/api/admin/activity-logs?${params.toString()}`);
+      return AuthService.apiRequest<PaginatedResponse<AuditLog>>(`/admin/activity-logs?${params.toString()}`);
     },
   });
+
+  // Merge real-time logs with fetched logs
+  const allLogs = useMemo(() => {
+    const fetchedLogs = data?.items || [];
+    const merged = [...realTimeLogs, ...fetchedLogs];
+    // Remove duplicates by ID
+    const unique = merged.reduce<AuditLog[]>((acc, log) => {
+      if (!acc.find((l: AuditLog) => l.id === log.id)) {
+        acc.push(log);
+      }
+      return acc;
+    }, []);
+    // Sort by created_at descending
+    return unique.sort(
+      (a: AuditLog, b: AuditLog) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [data, realTimeLogs]);
 
   const { data: analytics } = useQuery<ActivityAnalytics | null>({
     queryKey: ["activity-analytics", filters.date_from, filters.date_to],
@@ -99,7 +184,7 @@ export default function ActivityLogs() {
       const params = new URLSearchParams();
       if (filters.date_from) params.append('date_from', filters.date_from);
       if (filters.date_to) params.append('date_to', filters.date_to);
-      return AuthService.apiRequest<ActivityAnalytics>(`/api/admin/activity-logs/analytics?${params.toString()}`);
+      return AuthService.apiRequest<ActivityAnalytics>(`/admin/activity-logs/analytics?${params.toString()}`);
     },
     staleTime: 60_000,
   });
@@ -110,7 +195,7 @@ export default function ActivityLogs() {
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.append(key, value.toString());
       });
-      return AuthService.apiRequest<string>(`/api/admin/activity-logs/export?${params.toString()}`);
+      return AuthService.apiRequest<string>(`/admin/activity-logs/export?${params.toString()}`);
     },
     onSuccess: (csvContent) => {
       const blob = new Blob([csvContent], { type: "text/csv" });
@@ -182,7 +267,27 @@ export default function ActivityLogs() {
               Xem lịch sử hoạt động của hệ thống
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <div className="flex items-center gap-2 mr-2">
+              {wsConnected ? (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  <Wifi className="h-3 w-3 mr-1" />
+                  Real-time
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Offline
+                </Badge>
+              )}
+            </div>
+            <Button
+              onClick={() => setAutoScroll(!autoScroll)}
+              variant={autoScroll ? "default" : "outline"}
+              size="sm"
+            >
+              Auto-scroll {autoScroll ? "ON" : "OFF"}
+            </Button>
             <Button
               onClick={() => refetch()}
               variant="outline"
@@ -346,13 +451,18 @@ export default function ActivityLogs() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-lg font-medium text-gray-700">Đang tải dữ liệu...</p>
             </div>
-          ) : data?.items.length === 0 ? (
+          ) : allLogs.length === 0 ? (
             <div className="p-12 text-center">
               <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium text-gray-700">Không có dữ liệu</p>
             </div>
           ) : (
-            <Table>
+            <div 
+              ref={scrollContainerRef}
+              onScroll={checkScrollPosition}
+              className="max-h-[600px] overflow-y-auto"
+            >
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Thời gian</TableHead>
@@ -365,7 +475,7 @@ export default function ActivityLogs() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data?.items.map((log) => (
+                {allLogs.map((log) => (
                   <TableRow key={log.id} className="hover:bg-gray-50">
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm">
@@ -421,6 +531,7 @@ export default function ActivityLogs() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -526,4 +637,3 @@ export default function ActivityLogs() {
     </div>
   );
 }
-

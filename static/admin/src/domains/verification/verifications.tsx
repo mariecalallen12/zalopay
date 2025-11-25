@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { AuthService } from '../../shared/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '../../shared/components/ui/card';
 import { Button } from '../../shared/components/ui/button';
 import { Input } from '../../shared/components/ui/input';
@@ -80,10 +81,7 @@ export default function Verifications() {
 
   const fetchVerifications = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token');
-      }
+      
 
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -93,21 +91,10 @@ export default function Verifications() {
         ...(emailTypeFilter && { email_type: emailTypeFilter })
       });
 
-      const [verificationsResponse, statsResponse] = await Promise.all([
-        fetch(`/api/admin/verifications?${params}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('/api/admin/verifications/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+      const [verificationsData, statsData] = await Promise.all([
+        AuthService.apiRequest<{ items: Verification[]; total: number; pages: number }>(`/admin/verifications?${params.toString()}`),
+        AuthService.apiRequest<VerificationStats>(`/admin/verifications/stats`)
       ]);
-
-      if (!verificationsResponse.ok || !statsResponse.ok) {
-        throw new Error('Failed to fetch verifications');
-      }
-
-      const verificationsData = await verificationsResponse.json();
-      const statsData = await statsResponse.json();
 
       setVerifications(verificationsData.items || []);
       setTotalPages(verificationsData.pages || 1);
@@ -128,23 +115,10 @@ export default function Verifications() {
   const handleStatusUpdate = async (verificationId: number, newStatus: string) => {
     try {
       setUpdating(verificationId);
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(`/api/admin/verifications/${verificationId}/status`, {
+      await AuthService.apiRequest(`/admin/verifications/${verificationId}/status`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          notes: statusNotes
-        })
+        body: JSON.stringify({ status: newStatus, notes: statusNotes })
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update verification status');
-      }
 
       // Refresh data
       await fetchVerifications();

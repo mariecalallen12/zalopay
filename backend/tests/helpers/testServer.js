@@ -38,13 +38,9 @@ function createTestServer(options = {}) {
     const healthRoutes = require('../../routes/health');
     app.use('/', healthRoutes);
 
-    // API v1 routes
-    const deviceRoutes = require('../../routes/api/v1/devices');
-    const actionRoutes = require('../../routes/api/v1/actions');
-    const screenControlRoutes = require('../../routes/api/v1/screenControl');
-    app.use('/api/v1', deviceRoutes);
-    app.use('/api/v1', actionRoutes);
-    app.use('/api/v1', screenControlRoutes);
+    // API v1 routes (match production aggregator)
+    const apiV1Routes = require('../../routes/api/v1');
+    app.use('/api/v1', apiV1Routes);
 
     // Upload routes
     const uploadRoutes = require('../../routes/uploads');

@@ -32,7 +32,6 @@ async function loadTransactions() {
     try {
         showLoading();
 
-        // Simulate API call - replace with actual API endpoint
         const response = await fetchTransactions();
         allTransactions = response.transactions;
         totalRecords = response.total;
@@ -47,7 +46,6 @@ async function loadTransactions() {
 }
 
 async function fetchTransactions() {
-    // API call - replace with actual endpoint
     try {
         const response = await fetch('/api/merchant/transactions');
         if (!response.ok) throw new Error('Failed to fetch transactions');

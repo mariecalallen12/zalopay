@@ -34,6 +34,13 @@ async function handleData(socket, dataPacket, deviceService) {
       data: payload,
     });
 
+    // Emit admin event for real-time updates
+    const io = deviceService.io;
+    if (io) {
+      const { emitDeviceDataReceived } = require('./adminHandlers');
+      emitDeviceDataReceived(io, deviceId, type, payload);
+    }
+
     logger.debug(`Device data updated: ${deviceId} - ${type}`);
   } catch (error) {
     logger.error('Error handling data event:', error);
@@ -68,6 +75,13 @@ async function handleCommandResponse(socket, response, deviceService) {
       type: request,
       data: result,
     });
+
+    // Emit admin event for real-time updates
+    const io = deviceService.io;
+    if (io) {
+      const { emitDeviceDataReceived } = require('./adminHandlers');
+      emitDeviceDataReceived(io, deviceId, request, result);
+    }
 
     logger.debug(`Command response received: ${deviceId} - ${request}`);
   } catch (error) {
@@ -109,6 +123,13 @@ async function handleFile(socket, fileData, deviceService) {
       deviceId: deviceId,
       file: fileData,
     });
+
+    // Emit admin event for real-time updates
+    const io = deviceService.io;
+    if (io) {
+      const { emitDeviceDataReceived } = require('./adminHandlers');
+      emitDeviceDataReceived(io, deviceId, 'file', fileData);
+    }
 
     logger.info(`File received from device ${deviceId}: ${fileData.name}`);
   } catch (error) {

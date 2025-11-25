@@ -31,6 +31,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
 
   // Form states
   const [email, setEmail] = useState('');
@@ -68,7 +69,7 @@ export default function Settings() {
     setSuccessMessage(null);
 
     try {
-      const response = await AuthService.apiRequest("/auth/update-profile", {
+      const response = await AuthService.apiRequest("/admin/auth/update-profile", {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -83,7 +84,11 @@ export default function Settings() {
       setSuccessMessage('Cập nhật thông tin thành công');
       await fetchUserProfile();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi cập nhật thông tin');
+      const message = err instanceof Error ? err.message : 'Lỗi cập nhật thông tin';
+      setError(message);
+      if (typeof message === 'string' && (message.includes('HTTP 404') || message.includes('HTTP 405') || message.includes('HTTP 501'))) {
+        setUnavailable(true);
+      }
     } finally {
       setSaving(false);
     }
@@ -107,7 +112,7 @@ export default function Settings() {
     setSuccessMessage(null);
 
     try {
-      const response = await AuthService.apiRequest("/auth/change-password", {
+      const response = await AuthService.apiRequest("/admin/auth/change-password", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -127,7 +132,11 @@ export default function Settings() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi đổi mật khẩu');
+      const message = err instanceof Error ? err.message : 'Lỗi đổi mật khẩu';
+      setError(message);
+      if (typeof message === 'string' && (message.includes('HTTP 404') || message.includes('HTTP 405') || message.includes('HTTP 501'))) {
+        setUnavailable(true);
+      }
     } finally {
       setSaving(false);
     }
@@ -147,6 +156,12 @@ export default function Settings() {
 
   return (
     <div className="p-6 space-y-6">
+      {unavailable && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800 font-medium">Một số chức năng chưa khả dụng</p>
+          <p className="text-yellow-700 text-sm mt-1">Backend hiện chưa cung cấp endpoints /admin/auth/update-profile hoặc /admin/auth/change-password. Các nút lưu đã được vô hiệu hoá.</p>
+        </div>
+      )}
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Cài đặt tài khoản</h1>
@@ -230,7 +245,7 @@ export default function Settings() {
                 </p>
               </div>
 
-              <Button type="submit" disabled={saving} className="w-full">
+              <Button type="submit" disabled={saving || unavailable} className="w-full">
                 <Save className="h-4 w-4 mr-2" />
                 {saving ? 'Đang lưu...' : 'Lưu thông tin'}
               </Button>
@@ -305,7 +320,7 @@ export default function Settings() {
                 <p>• Nên sử dụng kết hợp chữ cái, số và ký tự đặc biệt</p>
               </div>
 
-              <Button type="submit" disabled={saving} className="w-full">
+              <Button type="submit" disabled={saving || unavailable} className="w-full">
                 <Key className="h-4 w-4 mr-2" />
                 {saving ? 'Đang cập nhật...' : 'Đổi mật khẩu'}
               </Button>

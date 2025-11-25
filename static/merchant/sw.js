@@ -18,7 +18,8 @@ const urlsToCache = [
   '/js/main.js',
   '/manifest.json',
   '/images/zalopay-merchant-icon.png',
-  '/images/zalopay-merchant-app-icon.png'
+  '/images/zalopay-merchant-app-icon.png',
+  '/images/apple-touch-icon.png'
 ];
 
 // Install event - Cache essential assets
@@ -229,4 +230,3 @@ self.addEventListener('message', (event) => {
     );
   }
 });
-

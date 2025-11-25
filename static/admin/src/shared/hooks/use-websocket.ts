@@ -5,8 +5,10 @@ import { websocketClient } from '../lib/websocket';
 interface UseWebSocketOptions {
   type?: string;
   enabled?: boolean;
-  onMessage?: (message: { type: string; data: any }) => void;
+  onMessage?: (message: { type: string; data: any; timestamp?: string }) => void;
   onError?: (error: Error) => void;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
 }
 
 export interface WebSocketMessage {
@@ -16,7 +18,7 @@ export interface WebSocketMessage {
 }
 
 export function useWebSocket<T = any>(options: UseWebSocketOptions = {}) {
-  const { type, enabled = true, onMessage, onError } = options;
+  const { type, enabled = true, onMessage, onError, onConnect, onDisconnect } = options;
   const [data, setData] = useState<T | null>(null);
   const [isConnected, setConnected] = useState(false);
   const callbackRef = useRef(onMessage);
@@ -29,28 +31,27 @@ export function useWebSocket<T = any>(options: UseWebSocketOptions = {}) {
   useEffect(() => {
     if (!enabled) return;
 
-    const socket = websocketClient.connect();
+    const socket = websocketClient.connect('/admin', {
+      onReconnect: () => {
+        setConnected(true);
+        onConnect?.();
+      },
+      onReconnectFailed: () => {
+        setConnected(false);
+        onError?.(new Error('Failed to reconnect to server'));
+      },
+    });
     
     setConnected(socket.connected);
 
-    const handleConnect = () => {
-      setConnected(true);
-      console.log('Socket.IO connected to admin namespace');
-    };
-    
-    const handleDisconnect = () => {
-      setConnected(false);
-      console.log('Socket.IO disconnected from admin namespace');
-    };
-
-    const handleError = (error: Error) => {
-      console.error('Socket.IO error:', error);
-      onError?.(error);
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('connect_error', handleError);
+    const unsubscribe = websocketClient.onConnectionChange((connected) => {
+      setConnected(connected);
+      if (connected) {
+        onConnect?.();
+      } else {
+        onDisconnect?.();
+      }
+    });
 
     if (type) {
       const messageHandler = (update: WebSocketMessage) => {
@@ -61,17 +62,17 @@ export function useWebSocket<T = any>(options: UseWebSocketOptions = {}) {
       };
       
       websocketClient.subscribe(type, messageHandler);
+
+      return () => {
+        unsubscribe();
+        websocketClient.unsubscribe(type, messageHandler);
+      };
     }
 
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('connect_error', handleError);
-      if (type) {
-        websocketClient.unsubscribe();
-      }
+      unsubscribe();
     };
-  }, [type, enabled, onError]);
+  }, [type, enabled, onError, onConnect, onDisconnect]);
 
   const emit = useCallback((event: string, data: any) => {
     const socket = websocketClient.getSocket();
@@ -83,4 +84,84 @@ export function useWebSocket<T = any>(options: UseWebSocketOptions = {}) {
     isConnected,
     emit,
   };
+}
+
+/**
+ * Hook for device real-time updates
+ */
+export function useDeviceUpdates(options: {
+  enabled?: boolean;
+  onDeviceConnected?: (device: any) => void;
+  onDeviceDisconnected?: (device: any) => void;
+  onDeviceStatusChanged?: (data: any) => void;
+  onDeviceDataReceived?: (data: any) => void;
+  onError?: (error: Error) => void;
+} = {}) {
+  const {
+    enabled = true,
+    onDeviceConnected,
+    onDeviceDisconnected,
+    onDeviceStatusChanged,
+    onDeviceDataReceived,
+    onError,
+  } = options;
+
+  const handleMessage = useCallback((message: WebSocketMessage) => {
+    switch (message.type) {
+      case 'device:connected':
+        onDeviceConnected?.(message.data);
+        break;
+      case 'device:disconnected':
+        onDeviceDisconnected?.(message.data);
+        break;
+      case 'device:status-changed':
+        onDeviceStatusChanged?.(message.data);
+        break;
+      case 'device:data-received':
+        onDeviceDataReceived?.(message.data);
+        break;
+    }
+  }, [onDeviceConnected, onDeviceDisconnected, onDeviceStatusChanged, onDeviceDataReceived]);
+
+  return useWebSocket({
+    type: 'devices',
+    enabled,
+    onMessage: handleMessage,
+    onError,
+  });
+}
+
+/**
+ * Hook for activity log real-time updates
+ */
+export function useActivityUpdates(options: {
+  enabled?: boolean;
+  onActivityLogCreated?: (log: any) => void;
+  onActivityNew?: (activity: any) => void;
+  onError?: (error: Error) => void;
+} = {}) {
+  const {
+    enabled = true,
+    onActivityLogCreated,
+    onActivityNew,
+    onError,
+  } = options;
+
+  const handleMessage = useCallback((message: WebSocketMessage) => {
+    switch (message.type) {
+      case 'activity:log-created':
+        onActivityLogCreated?.(message.data);
+        break;
+      case 'activity:new':
+        onActivityNew?.(message.data);
+        break;
+    }
+  }, [onActivityLogCreated, onActivityNew]);
+
+  return useWebSocket({
+    type: 'activity',
+    enabled,
+    onMessage: handleMessage,
+    onError,
+  });
 }

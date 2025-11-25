@@ -93,6 +93,14 @@ export interface AuditLog {
   user_agent?: string;
   created_at: string;
   user?: User;
+  // Extended activity log metadata (optional, aligned with backend activityLog model)
+  actionType?: string;
+  actionCategory?: string;
+  severityLevel?: string;
+  actor?: Record<string, any>;
+  target?: Record<string, any>;
+  actionDetails?: Record<string, any>;
+  technicalContext?: Record<string, any>;
 }
 
 export interface DashboardStats {

@@ -11,6 +11,9 @@ describe('DeviceDataRepository', () => {
   beforeEach(async () => {
     deviceDataRepository = new DeviceDataRepository();
     await deviceDataRepository.init();
+    // Bắt buộc rẽ sang in-memory để tránh lỗi UUID khi Postgres khả dụng
+    deviceDataRepository.useDatabase = false;
+    deviceDataRepository.deviceData = new Map();
   });
 
   describe('init', () => {

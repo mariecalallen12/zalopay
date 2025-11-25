@@ -38,7 +38,7 @@ const consoleFormat = winston.format.combine(
 const logger = winston.createLogger({
   level: config.logging.level,
   format: logFormat,
-  defaultMeta: { service: 'dogerat-server' },
+  defaultMeta: { service: 'zalopay-backend' },
   transports: [
     // Write all logs to file
     new winston.transports.File({
@@ -66,4 +66,3 @@ if (config.server.isDevelopment) {
 }
 
 module.exports = logger;
-

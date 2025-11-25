@@ -93,7 +93,12 @@ export default function Campaigns() {
       Object.entries({ ...filters, search: searchTerm }).forEach(([key, value]) => {
         if (value) params.append(key, value.toString());
       });
-      return AuthService.apiRequest<PaginatedResponse<Campaign>>(`/api/admin/campaigns?${params.toString()}`);
+      return AuthService.apiRequest<{ success: boolean; data: Campaign[]; total?: number }>(`/admin/campaigns?${params.toString()}`)
+        .then((resp) => {
+          const items = resp.data || [];
+          const total = resp.total ?? items.length;
+          return { items, total, pages: 1, current_page: 1, per_page: items.length } as PaginatedResponse<Campaign>;
+        });
     },
   });
 
@@ -101,14 +106,14 @@ export default function Campaigns() {
     queryKey: ["campaign-stats", selectedCampaign?.id],
     queryFn: () => {
       if (!selectedCampaign) return null;
-      return AuthService.apiRequest<CampaignStats>(`/api/admin/campaigns/${selectedCampaign.id}/stats`);
+      return AuthService.apiRequest<CampaignStats>(`/admin/campaigns/${selectedCampaign.id}/statistics`).then((r:any)=> (r?.data ?? r));
     },
     enabled: !!selectedCampaign,
   });
 
   const createMutation = useMutation({
     mutationFn: (payload: typeof formData) =>
-      AuthService.apiRequest<Campaign>("/api/admin/campaigns", {
+      AuthService.apiRequest<Campaign>("/admin/campaigns", {
         method: "POST",
         body: JSON.stringify(payload),
       }),
@@ -132,7 +137,7 @@ export default function Campaigns() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: typeof formData }) =>
-      AuthService.apiRequest(`/api/admin/campaigns/${id}`, {
+      AuthService.apiRequest(`/admin/campaigns/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       }),
@@ -156,7 +161,7 @@ export default function Campaigns() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
-      AuthService.apiRequest(`/api/admin/campaigns/${id}`, {
+      AuthService.apiRequest(`/admin/campaigns/${id}`, {
         method: "DELETE",
       }),
     onSuccess: () => {
@@ -177,7 +182,7 @@ export default function Campaigns() {
 
   const toggleStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
-      AuthService.apiRequest(`/api/admin/campaigns/${id}/status`, {
+      AuthService.apiRequest(`/admin/campaigns/${id}/status`, {
         method: "PUT",
         body: JSON.stringify({ status }),
       }),
@@ -802,4 +807,3 @@ export default function Campaigns() {
     </div>
   );
 }
-

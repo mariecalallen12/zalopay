@@ -4,3 +4,7 @@ backend/logs/
 *.log
 deployment_log.txt
 deployment_log.md
+.env
+backend/.env
+backend/.env.local
+backend/.env.*.local

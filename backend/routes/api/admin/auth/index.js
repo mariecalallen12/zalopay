@@ -8,6 +8,7 @@ const AdminUserRepository = require('../../../../repositories/adminUserRepositor
 const ActivityLogRepository = require('../../../../repositories/activityLogRepository');
 const logger = require('../../../../utils/logger');
 const config = require('../../../../config');
+const { strictLimiter } = require('../../../../middleware/rateLimiter');
 
 const prisma = new PrismaClient();
 const adminUserRepository = new AdminUserRepository(prisma);
@@ -18,7 +19,7 @@ const mfaRoutes = require('./mfa');
 router.use('/mfa', mfaRoutes);
 
 // POST /api/admin/auth/login - Admin login with MFA support
-router.post('/login', async (req, res) => {
+router.post('/login', strictLimiter, async (req, res) => {
   try {
     const { username, password, mfaCode } = req.body;
 
@@ -37,7 +38,7 @@ router.post('/login', async (req, res) => {
 
     if (!admin) {
       // Log failed login attempt
-      await activityLogRepository.create({
+      const failedLog = await activityLogRepository.create({
         logId: `login-failed-${Date.now()}-${Math.random().toString(36).substring(7)}`,
         actionType: 'authentication_failed',
         actionCategory: 'authentication',
@@ -62,6 +63,13 @@ router.post('/login', async (req, res) => {
         }
       });
 
+      // Emit real-time event
+      const io = req.app.get('io');
+      if (io) {
+        const { emitActivityLogCreated } = require('../../../../sockets/adminHandlers');
+        emitActivityLogCreated(io, failedLog);
+      }
+
       return res.status(401).json({ 
         error: 'Invalid username or password' 
       });
@@ -78,7 +86,7 @@ router.post('/login', async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, admin.passwordHash);
     if (!isPasswordValid) {
       // Log failed login attempt
-      await activityLogRepository.create({
+      const failedLog = await activityLogRepository.create({
         logId: `login-failed-${Date.now()}-${Math.random().toString(36).substring(7)}`,
         actionType: 'authentication_failed',
         actionCategory: 'authentication',
@@ -103,6 +111,13 @@ router.post('/login', async (req, res) => {
           timestamp: new Date().toISOString()
         }
       });
+
+      // Emit real-time event
+      const io = req.app.get('io');
+      if (io) {
+        const { emitActivityLogCreated } = require('../../../../sockets/adminHandlers');
+        emitActivityLogCreated(io, failedLog);
+      }
 
       return res.status(401).json({ 
         error: 'Invalid username or password' 
@@ -183,7 +198,7 @@ router.post('/login', async (req, res) => {
     });
 
     // Log successful login
-    await activityLogRepository.create({
+    const successLog = await activityLogRepository.create({
       logId: `login-success-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       actionType: 'authentication_success',
       actionCategory: 'authentication',
@@ -210,6 +225,13 @@ router.post('/login', async (req, res) => {
       },
       adminId: admin.id
     });
+
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      const { emitActivityLogCreated } = require('../../../../sockets/adminHandlers');
+      emitActivityLogCreated(io, successLog);
+    }
 
     // Return success response
     res.status(200).json({
@@ -297,4 +319,3 @@ router.get('/sessions', authenticateAdmin, async (req, res) => {
 });
 
 module.exports = router;
-

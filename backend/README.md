@@ -165,14 +165,12 @@ DogeRat-main/
 ### Android
 - Full feature support
 - All actions available
-- See [Android Screen Control Guide](./docs/ANDROID_SCREEN_CONTROL.md)
+- Hướng dẫn điều khiển chi tiết đã được gỡ bỏ — xem trực tiếp `services/actionService.js` để biết danh sách lệnh.
 
 ### iOS
 - Full feature support (most actions)
-- Platform-specific limitations documented
-- See [iOS Integration Guide](./docs/IOS_INTEGRATION.md) for setup instructions
-- See [iOS API Reference](./docs/IOS_API_REFERENCE.md) for API documentation
-- See [iOS Actions List](./docs/IOS_ACTIONS.md) for supported actions
+- Platform-specific limitations documented trong mã nguồn
+- Kiểm tra `services/remoteControlService.js` và `services/deviceService.js` để xem khả năng hỗ trợ hiện tại.
 
 ### Platform Detection
 - Automatic platform detection from Socket.IO handshake headers

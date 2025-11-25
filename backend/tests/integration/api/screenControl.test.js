@@ -28,6 +28,12 @@ describe('Screen Control API Endpoints', () => {
     await deviceRepository.init();
     await deviceDataRepository.init();
 
+    // Sử dụng kho in-memory để không phụ thuộc vào UUID hợp lệ trong Prisma
+    deviceRepository.useDatabase = false;
+    deviceRepository.devices = new Map();
+    deviceDataRepository.useDatabase = false;
+    deviceDataRepository.deviceData = new Map();
+
     mockIo = createMockIo();
     deviceService = new DeviceService(deviceRepository, deviceDataRepository, mockIo);
     screenStreamService = new ScreenStreamService(deviceService, mockIo);

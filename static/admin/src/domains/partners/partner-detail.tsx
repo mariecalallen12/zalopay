@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { AuthService } from "@/shared/lib/auth";
@@ -99,7 +99,14 @@ const PartnerDetail: React.FC = () => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  const { data: partner, isLoading, refetch } = useQuery<PartnerDetail>({
+  const [unavailable, setUnavailable] = useState(false);
+
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["partner", id],
     queryFn: async () => {
       return AuthService.apiRequest<PartnerDetail>(`/admin/partners/${id}`);
@@ -107,7 +114,16 @@ const PartnerDetail: React.FC = () => {
     enabled: !!id,
   });
 
+  useEffect(() => {
+    if (isError) {
+      setUnavailable(true);
+    }
+  }, [isError]);
+
+  const partner = data as PartnerDetail | undefined;
+
   const suspendPartner = async () => {
+    if (unavailable) return;
     if (!confirm("Bạn có chắc chắn muốn tạm ngừng đối tác này?")) return;
 
     try {
@@ -131,6 +147,7 @@ const PartnerDetail: React.FC = () => {
   };
 
   const activatePartner = async () => {
+    if (unavailable) return;
     try {
       await AuthService.apiRequest(`/admin/partners/${id}/activate`, {
         method: "POST",
@@ -239,6 +256,12 @@ const PartnerDetail: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {unavailable && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <p className="text-yellow-800 font-medium">Tính năng chưa khả dụng</p>
+          <p className="text-yellow-700 text-sm mt-1">Backend chưa cung cấp endpoints /admin/partners/* cho chi tiết hoặc thao tác. Các nút hành động đã được vô hiệu hoá.</p>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -257,12 +280,12 @@ const PartnerDetail: React.FC = () => {
         </div>
         <div className="flex space-x-2">
           {partner.status === "active" ? (
-            <Button variant="destructive" size="sm" onClick={suspendPartner}>
+            <Button variant="destructive" size="sm" onClick={suspendPartner} disabled={unavailable}>
               <Ban className="h-4 w-4 mr-2" />
               Tạm ngừng
             </Button>
           ) : (
-            <Button variant="default" size="sm" onClick={activatePartner}>
+            <Button variant="default" size="sm" onClick={activatePartner} disabled={unavailable}>
               <CheckCircle className="h-4 w-4 mr-2" />
               Kích hoạt
             </Button>

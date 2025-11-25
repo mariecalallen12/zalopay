@@ -9,17 +9,17 @@
     <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
-    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
     <title>Câu hỏi thường gặp - ZaloPay Merchant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='merchant/css/style.css') }}" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
     <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('merchant.index') }}">
+            <a class="navbar-brand" href="index.html">
                 <img src="https://stc-zaloprofile.zdn.vn/pc/v1/images/logo_zalopay.png" alt="ZaloPay" height="40">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -28,16 +28,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('merchant.solutions') }}">Giải pháp</a>
+                        <a class="nav-link" href="solutions.html">Giải pháp</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('merchant.index') }}#benefits">Lợi ích</a>
+                        <a class="nav-link" href="index.html#benefits">Lợi ích</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="#">FAQ</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary ms-2" href="{{ url_for('merchant.register_form') }}">Đăng ký ngay</a>
+                        <a class="btn btn-primary ms-2" href="auth_signup_preview.html">Đăng ký ngay</a>
                     </li>
                 </ul>
             </div>
@@ -495,9 +495,9 @@
                 <div class="col-lg-2 col-md-6 mb-4">
                     <h5>Liên kết nhanh</h5>
                     <ul class="list-unstyled">
-                        <li><a href="{{ url_for('merchant.index') }}" class="text-light">Trang chủ</a></li>
-                        <li><a href="{{ url_for('merchant.solutions') }}" class="text-light">Giải pháp</a></li>
-                        <li><a href="{{ url_for('merchant.register_form') }}" class="text-light">Đăng ký</a></li>
+                        <li><a href="index.html" class="text-light">Trang chủ</a></li>
+                        <li><a href="solutions.html" class="text-light">Giải pháp</a></li>
+                        <li><a href="auth_signup_preview.html" class="text-light">Đăng ký</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-6 mb-4">

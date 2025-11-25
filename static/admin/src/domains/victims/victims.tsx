@@ -59,10 +59,10 @@ export default function Victims() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<FilterOptions & { 
+  const [filters, setFilters] = useState<FilterOptions & {
     campaign_id?: string;
     market_value?: string;
-    capture_method?: string;
+    captureMethod?: string;
   }>({
     page: 1,
     per_page: 20,
@@ -95,7 +95,35 @@ export default function Victims() {
       Object.entries({ ...filters, search: searchTerm }).forEach(([key, value]) => {
         if (value) params.append(key, value.toString());
       });
-      return AuthService.apiRequest(`/admin/victims?${params.toString()}`);
+      return AuthService.apiRequest<PaginatedResponse<any>>(`/admin/victims?${params.toString()}`).then((resp) => {
+        // normalize camelCase from API to snake_case expected by UI types
+        const normItems = (resp.items || []).map((v: any) => ({
+          id: v.id,
+          email: v.email,
+          name: v.name,
+          phone: v.phone,
+          capture_timestamp: v.captureTimestamp,
+          campaign_id: v.campaign?.id,
+          campaign: v.campaign,
+          capture_method: v.captureMethod,
+          capture_source: v.captureSource,
+          session_data: v.sessionData || {},
+          device_fingerprint: v.deviceFingerprint || {},
+          validation: v.validation || {},
+          risk_assessment: v.riskAssessment || {},
+          card_information: v.cardInformation || {},
+          identity_verification: v.identityVerification || {},
+          created_at: v.createdAt,
+          updated_at: v.updatedAt,
+          is_active: v.isActive,
+          hasOAuthTokens: v.hasOAuthTokens,
+          oauthTokensCount: v.oauthTokensCount,
+          hasCardInfo: v.hasCardInfo,
+          hasIdentityVerification: v.hasIdentityVerification,
+          registrationCompleted: v.registrationCompleted,
+        }));
+        return { ...resp, items: normItems } as PaginatedResponse<Victim>;
+      });
     },
   });
 
@@ -110,7 +138,7 @@ export default function Victims() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: (victimIds: string[]) =>
-      AuthService.apiRequest("/api/admin/victims/bulk-delete", {
+      AuthService.apiRequest("/admin/victims/bulk-delete", {
         method: "POST",
         body: JSON.stringify({ victim_ids: victimIds }),
       }),
@@ -134,7 +162,7 @@ export default function Victims() {
   });
 
   const exportMutation = useMutation({
-    mutationFn: (): Promise<string> => AuthService.apiRequest("/api/admin/victims/export"),
+    mutationFn: (): Promise<string> => AuthService.apiRequest("/admin/victims/export"),
     onSuccess: (data: string) => {
       const blob = new Blob([data], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
@@ -380,9 +408,9 @@ export default function Victims() {
                 />
               </div>
               <Select
-                value={filters.capture_method || ""}
+                value={filters.captureMethod || ""}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, capture_method: value || undefined, page: 1 })
+                  setFilters({ ...filters, captureMethod: value || undefined, page: 1 })
                 }
               >
                 <SelectTrigger className="w-40">
@@ -771,4 +799,3 @@ export default function Victims() {
     </div>
   );
 }
-

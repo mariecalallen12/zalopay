@@ -38,7 +38,7 @@ export default function MFASetup() {
 
   const checkMFAStatus = async () => {
     try {
-      const response = await AuthService.apiRequest('/api/admin/auth/mfa/status') as { enabled: boolean };
+      const response = await AuthService.apiRequest('/admin/auth/mfa/status') as { enabled: boolean };
       setMfaEnabled(response.enabled);
     } catch (err) {
       console.error('Failed to check MFA status:', err);
@@ -50,7 +50,7 @@ export default function MFASetup() {
     setError(null);
 
     try {
-      const response = await AuthService.apiRequest('/api/admin/auth/mfa/setup', {
+      const response = await AuthService.apiRequest('/admin/auth/mfa/setup', {
         method: 'POST',
       }) as MFASetupData;
 
@@ -77,7 +77,7 @@ export default function MFASetup() {
     setError(null);
 
     try {
-      const response = await AuthService.apiRequest('/api/admin/auth/mfa/verify', {
+      const response = await AuthService.apiRequest('/admin/auth/mfa/verify', {
         method: 'POST',
         body: JSON.stringify({
           code: verificationCode,
@@ -114,7 +114,7 @@ export default function MFASetup() {
     setLoading(true);
 
     try {
-      await AuthService.apiRequest('/api/admin/auth/mfa/disable', {
+      await AuthService.apiRequest('/admin/auth/mfa/disable', {
         method: 'POST',
       });
 
@@ -423,4 +423,3 @@ export default function MFASetup() {
     </div>
   );
 }
-

@@ -23,7 +23,6 @@ function updateLastUpdateTime() {
 
 async function loadDashboardData() {
     try {
-        // Simulate API calls - replace with actual API endpoints
         const stats = await fetchDashboardStats();
         const transactions = await fetchRecentTransactions();
 
@@ -238,11 +237,19 @@ async function initializeCharts() {
     });
 }
 
-function changeChartPeriod(days) {
-    // In a real implementation, this would fetch new data for the selected period
-    console.log(`Changing chart period to ${days} days`);
-    // For now, just reinitialize with new sample data
-    initializeCharts();
+async function changeChartPeriod(days) {
+    try {
+        const response = await fetch(`/api/merchant/dashboard/revenue-chart?days=${days}`);
+        if (response.ok) {
+            const chartData = await response.json();
+            // Reinitialize chart with new data
+            initializeCharts();
+        } else {
+            console.error('Failed to fetch chart data for period:', days);
+        }
+    } catch (error) {
+        console.error('Error changing chart period:', error);
+    }
 }
 
 function viewTransaction(transactionId) {

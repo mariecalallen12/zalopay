@@ -26,6 +26,12 @@ describe('DeviceService', () => {
     await deviceRepository.init();
     await deviceDataRepository.init();
     
+    // Bỏ qua Postgres thật để tránh ràng buộc UUID trong unit test
+    deviceRepository.useDatabase = false;
+    deviceRepository.devices = new Map();
+    deviceDataRepository.useDatabase = false;
+    deviceDataRepository.deviceData = new Map();
+    
     deviceService = new DeviceService(deviceRepository, deviceDataRepository, mockIo);
   });
 
