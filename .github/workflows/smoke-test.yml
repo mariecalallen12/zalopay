@@ -1,0 +1,28 @@
+name: Smoke Tests
+
+on:
+  pull_request:
+    branches: [ main, staging, sanitize-production ]
+
+jobs:
+  smoke-test:
+    name: Run smoke tests script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Make smoke script executable
+        run: |
+          chmod +x ./scripts/smoke-test.sh || true
+
+      - name: Run smoke tests
+        run: |
+          ./scripts/smoke-test.sh
+        env:
+          URL: http://localhost:3000
