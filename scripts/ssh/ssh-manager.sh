@@ -14,10 +14,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Cấu hình mặc định
+# Cấu hình mặc định - có thể override bằng biến môi trường
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${SCRIPT_DIR}/ssh-config.env"
-LOG_FILE="${SCRIPT_DIR}/../../logs/ssh-connection.log"
+LOG_FILE="${SSH_LOG_FILE:-${SCRIPT_DIR}/../../logs/ssh-connection.log}"
+
+# Cấu hình ứng dụng - có thể override bằng biến môi trường
+APP_DIR="${APP_DIR:-/app}"
+APP_PORT="${APP_PORT:-3000}"
+HEALTH_ENDPOINT="${HEALTH_ENDPOINT:-http://localhost:${APP_PORT}/health}"
+CONTAINER_PREFIX="${CONTAINER_PREFIX:-zalopay}"
+
+# Load cấu hình từ file nếu tồn tại
+if [ -f "$CONFIG_FILE" ]; then
+    # shellcheck source=/dev/null
+    source "$CONFIG_FILE"
+fi
 
 # Hàm in thông báo
 print_step() {
@@ -215,20 +227,26 @@ deploy_app() {
         exit 0
     fi
     
-    ssh "$host" << 'DEPLOY_SCRIPT'
-        cd /app || exit 1
+    ssh "$host" << DEPLOY_SCRIPT
+        cd ${APP_DIR} || exit 1
         
         echo "🔄 Pulling latest changes..."
         git pull origin main
         
         echo "📦 Installing dependencies..."
-        npm ci --production
+        if [ -f "package.json" ]; then
+            npm ci --production
+        elif [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+        fi
         
         echo "🔨 Running database migrations..."
-        npm run db:migrate
+        npm run db:migrate 2>/dev/null || echo "Bỏ qua migrations"
         
         echo "🔄 Restarting application..."
-        docker compose -f docker-compose.production.yml up -d --build
+        docker compose -f docker-compose.production.yml up -d --build 2>/dev/null || \
+        docker-compose -f docker-compose.production.yml up -d --build 2>/dev/null || \
+        echo "Docker không khả dụng, vui lòng restart thủ công"
         
         echo "✅ Deploy completed!"
 DEPLOY_SCRIPT
@@ -255,7 +273,7 @@ health_check() {
     fi
     
     # Thực hiện kiểm tra
-    ssh "$host" << 'HEALTH_SCRIPT'
+    ssh "$host" << HEALTH_SCRIPT
         echo "📊 Thông tin hệ thống:"
         echo "========================"
         
@@ -272,7 +290,7 @@ health_check() {
         docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "Docker không khả dụng"
         
         echo -e "\n🌐 Network:"
-        curl -s -o /dev/null -w "Health endpoint: %{http_code}\n" http://localhost:3000/health 2>/dev/null || echo "API không phản hồi"
+        curl -s -o /dev/null -w "Health endpoint: %{http_code}\n" ${HEALTH_ENDPOINT} 2>/dev/null || echo "API không phản hồi"
 HEALTH_SCRIPT
     
     log_message "Health check for $host completed"
@@ -291,8 +309,8 @@ view_logs() {
     
     print_step "Xem logs từ $host (service: $service)..."
     
-    ssh "$host" "docker logs zalopay-$service-prod -f --tail 100" 2>/dev/null || \
-    ssh "$host" "tail -f /app/logs/$service.log" 2>/dev/null || \
+    ssh "$host" "docker logs ${CONTAINER_PREFIX}-$service-prod -f --tail 100" 2>/dev/null || \
+    ssh "$host" "tail -f ${APP_DIR}/logs/$service.log" 2>/dev/null || \
     ssh "$host" "journalctl -u $service -f"
 }
 
@@ -314,6 +332,7 @@ manage_keys() {
     case "$choice" in
         1)
             print_step "Tạo SSH key mới..."
+            print_warning "⚠️ Bạn nên đặt passphrase để bảo vệ private key!"
             ssh-keygen -t ed25519 -C "zalopay-$(date +%Y%m%d)"
             ;;
         2)

@@ -198,7 +198,9 @@ create_ssh_key() {
     
     if [ ! -f "$SSH_KEY" ]; then
         print_step "Tạo SSH key mới (Ed25519)..."
-        ssh-keygen -t ed25519 -C "zalopay-deployment" -f "$SSH_KEY" -N ""
+        print_warning "⚠️ Bạn nên đặt passphrase để bảo vệ private key!"
+        echo ""
+        ssh-keygen -t ed25519 -C "zalopay-deployment" -f "$SSH_KEY"
         print_success "Đã tạo SSH key: $SSH_KEY"
         echo ""
         echo -e "${YELLOW}Public key của bạn:${NC}"
