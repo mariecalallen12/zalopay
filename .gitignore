@@ -1,6 +1,10 @@
 node_modules/
 package-lock.json
 backend/logs/
+logs/
 *.log
 deployment_log.txt
 deployment_log.md
+.ssh/
+*.pem
+*.key
